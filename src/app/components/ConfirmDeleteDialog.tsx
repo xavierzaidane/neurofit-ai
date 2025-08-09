@@ -1,6 +1,5 @@
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -29,8 +28,10 @@ const ConfirmDeleteDialog = ({
         <DialogHeader>
           <DialogTitle>Delete Plan</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete the plan "<strong>{planName}</strong>"? This action cannot be undone.
+            Are you sure you want to delete the plan &quot;<strong>{planName}</strong>&quot;? This action can&apos;t be undone.
           </DialogDescription>
+
+
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
