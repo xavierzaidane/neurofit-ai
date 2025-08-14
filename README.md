@@ -38,7 +38,7 @@ A React/Next.js web app that allows users to generate personalized fitness progr
 ### 1. Clone the repository
 
 ```bash
-[git clone https://github.com/<your-username>/neurofit-ai.git](https://github.com/xavierzaidane/neurofit-ai.git)
+git clone https://github.com/xavierzaidane/neurofit-ai.git
 cd neurofit-ai
 ```
 
