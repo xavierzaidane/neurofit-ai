@@ -47,125 +47,126 @@
   /* Base Variables */
   --radius: 0.625rem;
 
-  /* Cyberpunk Theme Colors */
-  --cyber-black: #000000;
-  --cyber-dark: #0a0c14;
-  --cyber-blue-bright: #18cef2; 
-  --cyber-blue: #1089bd; 
-  --cyber-blue-dark: #0b4a7d; 
-  --cyber-blue-glow: #38bdf8; 
-  --cyber-accent: #0ff4;
+  /* Gray Theme Colors */
+  --gray-black: #000000;
+  --gray-dark: #0f0f0f;
+  --gray-light: #d1d5db; 
+  --gray: #6b7280; 
+  --gray-dark-alt: #374151; 
+  --gray-glow: #9ca3af; 
+  --gray-accent: #e5e7eb;
 
   /* Background */
-  --background: var(--cyber-dark);
-  --foreground: #f2f2f2;
+  --background: var(--gray-dark);
+  --foreground: #f5f5f5;
 
   /* Card and popover elements */
-  --card: #111827;
-  --card-foreground: #f2f2f2;
-  --popover: #111827;
-  --popover-foreground: #f2f2f2;
+  --card: #1f2937;
+  --card-foreground: #f5f5f5;
+  --popover: #1f2937;
+  --popover-foreground: #f5f5f5;
 
-  /* Primary - Main blue */
-  --primary: var(--cyber-blue-bright);
-  --primary-foreground: var(--cyber-dark);
+  /* Primary - Light gray */
+  --primary: var(--gray-light);
+  --primary-foreground: var(--gray-dark);
 
-  /* Secondary - Darker blue */
-  --secondary: var(--cyber-blue);
+  /* Secondary - Mid gray */
+  --secondary: var(--gray);
   --secondary-foreground: #ffffff;
 
-  /* Accent - Light blue with glow */
-  --accent: var(--cyber-blue-glow);
-  --accent-foreground: var(--cyber-dark);
+  /* Accent - Subtle glow gray */
+  --accent: var(--gray-glow);
+  --accent-foreground: var(--gray-dark);
 
   /* Muted elements */
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
+  --muted: #1f2937;
+  --muted-foreground: #9ca3af;
 
   /* System colors */
   --destructive: #ef4444;
-  --border: rgba(24, 206, 242, 0.2);
-  --input: rgba(24, 206, 242, 0.2);
-  --ring: var(--cyber-blue);
+  --border: rgba(156, 163, 175, 0.2);
+  --input: rgba(156, 163, 175, 0.2);
+  --ring: var(--gray-light);
 
-  /* Chart colors - cyberpunk theme */
-  --chart-1: var(--cyber-blue-bright);
-  --chart-2: #3b82f6;
-  --chart-3: var(--cyber-blue);
-  --chart-4: #06b6d4;
-  --chart-5: #0284c7;
+  /* Chart colors - gray theme */
+  --chart-1: var(--gray-light);
+  --chart-2: #9ca3af;
+  --chart-3: var(--gray);
+  --chart-4: #4b5563;
+  --chart-5: #374151;
 
   /* Sidebar colors */
-  --sidebar: var(--cyber-dark);
-  --sidebar-foreground: #f2f2f2;
-  --sidebar-primary: var(--cyber-blue-bright);
-  --sidebar-primary-foreground: var(--cyber-dark);
-  --sidebar-accent: var(--cyber-blue);
+  --sidebar: var(--gray-dark);
+  --sidebar-foreground: #f5f5f5;
+  --sidebar-primary: var(--gray-light);
+  --sidebar-primary-foreground: var(--gray-dark);
+  --sidebar-accent: var(--gray);
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(24, 206, 242, 0.2);
-  --sidebar-ring: var(--cyber-blue);
+  --sidebar-border: rgba(156, 163, 175, 0.2);
+  --sidebar-ring: var(--gray-light);
 
-  /* Custom Cyberpunk UI Variables */
-  --cyber-grid-color: rgba(24, 206, 242, 0.05);
-  --cyber-glow-primary: rgba(24, 206, 242, 0.2);
-  --cyber-glow-strong: rgba(24, 206, 242, 0.5);
-  --cyber-line-color: rgba(24, 206, 242, 0.3);
+  /* Custom Gray UI Variables */
+  --cyber-grid-color: rgba(156, 163, 175, 0.05);
+  --cyber-glow-primary: rgba(156, 163, 175, 0.2);
+  --cyber-glow-strong: rgba(156, 163, 175, 0.5);
+  --cyber-line-color: rgba(156, 163, 175, 0.3);
   --cyber-terminal-bg: rgba(0, 0, 0, 0.7);
   --cyber-text-bright: #ffffff;
-  --cyber-text-muted: rgba(242, 242, 242, 0.7);
-  --cyber-text-dim: rgba(242, 242, 242, 0.5);
+  --cyber-text-muted: rgba(245, 245, 245, 0.7);
+  --cyber-text-dim: rgba(245, 245, 245, 0.5);
 }
 
 .dark {
   /* Background */
-  --background: var(--cyber-dark);
-  --foreground: #f2f2f2;
+  --background: var(--gray-dark);
+  --foreground: #f5f5f5;
 
   /* Card and popover elements */
-  --card: #111827;
-  --card-foreground: #f2f2f2;
-  --popover: #111827;
-  --popover-foreground: #f2f2f2;
+  --card: #1f2937;
+  --card-foreground: #f5f5f5;
+  --popover: #1f2937;
+  --popover-foreground: #f5f5f5;
 
-  /* Primary - Main blue */
-  --primary: var(--cyber-blue-bright);
-  --primary-foreground: var(--cyber-dark);
+  /* Primary */
+  --primary: var(--gray-light);
+  --primary-foreground: var(--gray-dark);
 
-  /* Secondary - Darker blue */
-  --secondary: var(--cyber-blue);
+  /* Secondary */
+  --secondary: var(--gray);
   --secondary-foreground: #ffffff;
 
-  /* Accent - Light blue with glow */
-  --accent: var(--cyber-blue-glow);
-  --accent-foreground: var(--cyber-dark);
+  /* Accent */
+  --accent: var(--gray-glow);
+  --accent-foreground: var(--gray-dark);
 
-  /* Muted elements */
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
+  /* Muted */
+  --muted: #1f2937;
+  --muted-foreground: #9ca3af;
 
-  /* System colors */
+  /* System */
   --destructive: #ef4444;
-  --border: rgba(24, 206, 242, 0.2);
-  --input: rgba(24, 206, 242, 0.2);
-  --ring: var(--cyber-blue);
+  --border: rgba(156, 163, 175, 0.2);
+  --input: rgba(156, 163, 175, 0.2);
+  --ring: var(--gray-light);
 
-  /* Chart colors - cyberpunk theme */
-  --chart-1: var(--cyber-blue-bright);
-  --chart-2: #3b82f6;
-  --chart-3: var(--cyber-blue);
-  --chart-4: #06b6d4;
-  --chart-5: #0284c7;
+  /* Chart */
+  --chart-1: var(--gray-light);
+  --chart-2: #9ca3af;
+  --chart-3: var(--gray);
+  --chart-4: #4b5563;
+  --chart-5: #374151;
 
-  /* Sidebar colors */
-  --sidebar: var(--cyber-dark);
-  --sidebar-foreground: #f2f2f2;
-  --sidebar-primary: var(--cyber-blue-bright);
-  --sidebar-primary-foreground: var(--cyber-dark);
-  --sidebar-accent: var(--cyber-blue);
+  /* Sidebar */
+  --sidebar: var(--gray-dark);
+  --sidebar-foreground: #f5f5f5;
+  --sidebar-primary: var(--gray-light);
+  --sidebar-primary-foreground: var(--gray-dark);
+  --sidebar-accent: var(--gray);
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(24, 206, 242, 0.2);
-  --sidebar-ring: var(--cyber-blue);
+  --sidebar-border: rgba(156, 163, 175, 0.2);
+  --sidebar-ring: var(--gray-light);
 }
+
 
 @layer base {
   * {
