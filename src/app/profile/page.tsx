@@ -20,8 +20,6 @@ import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
 import { Id } from "../../../convex/_generated/dataModel";
 
 
-
-
 const ProfilePage = () => {
   const { user } = useUser();
   const userId = user?.id as string;
