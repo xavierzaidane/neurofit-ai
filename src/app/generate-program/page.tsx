@@ -264,7 +264,6 @@ const GenerateProgramPage = () => {
           </div>
         )}
 
-        {/* CALL CONTROLS */}
         <div className="w-full flex justify-center gap-4">
           <Button
             className={`w-40 text-xl rounded-3xl ${

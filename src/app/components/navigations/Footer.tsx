@@ -1,77 +1,32 @@
-import { ZapIcon } from "lucide-react";
-import Link from "next/link";
+'use client';
 
-const Footer = () => {
+export default function Footer() {
   return (
-    <footer className="border-t border-border bg-background/80 backdrop-blur-sm">
-      {/* Top border glow */}
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          {/* Logo and Copyright */}
-          <div className="flex flex-col items-center md:items-start gap-2">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="p-1 bg-primary/10 rounded">
-                <ZapIcon className="w-4 h-4 text-primary" />
-              </div>
-              <span className="text-xl font-bold font-mono">
-                Neuro<span className="text-primary">fit</span>.ai
-              </span>
-            </Link>
-            <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} neurofit.ai - All rights reserved
+    <footer className="bg-black border-t border-white/10 py-12 md:py-20">
+      <div className="container mx-auto px-6 md:px-12">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
+          <div>
+            <h2 className="font-display text-2xl font-bold text-white mb-2">NEUROFIT</h2>
+            <p className="text-white/40 text-sm max-w-xs">
+              Pioneering the future of autonomous digital intelligence.
             </p>
           </div>
-
-          {/* Links */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-12 gap-y-2 text-sm">
-            <Link
-              href="/about"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              About
-            </Link>
-            <Link
-              href="/terms"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              Terms
-            </Link>
-            <Link
-              href="/privacy"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              Privacy
-            </Link>
-            <Link
-              href="/contact"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              Contact
-            </Link>
-            <Link
-              href="/blog"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              Blog
-            </Link>
-            <Link
-              href="/help"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              Help
-            </Link>
+          <div className="flex gap-8">
+            <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">Twitter</a>
+            <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">GitHub</a>
+            <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">Discord</a>
           </div>
-
-          {/* Status */}
-          <div className="flex items-center gap-2 px-3 py-2 border border-border rounded-md bg-background/50">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <span className="text-xs font-mono">SYSTEM OPERATIONAL</span>
+        </div>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-white/5">
+          <p className="text-white/20 text-xs">
+            © {new Date().getFullYear()} NexBot AI. All rights reserved.
+          </p>
+          <div className="flex gap-6">
+            <a href="#" className="text-white/40 hover:text-white transition-colors text-xs">Privacy Policy</a>
+            <a href="#" className="text-white/40 hover:text-white transition-colors text-xs">Terms of Service</a>
           </div>
         </div>
       </div>
     </footer>
   );
-};
-export default Footer;
+}

@@ -1,91 +1,228 @@
 "use client";
 
-import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
-import {  HomeIcon, Phone, UserIcon, ZapIcon } from "lucide-react";
+import {
+  SignInButton,
+  SignOutButton,
+  SignUpButton,
+  UserButton,
+  useUser,
+} from "@clerk/nextjs";
+import { Menu, X, ZapIcon } from "lucide-react";
 import Link from "next/link";
-import { Button } from "../ui/button";
-
-
+import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
+import { useState } from "react";
 
 const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const { isSignedIn } = useUser();
+  const { scrollY } = useScroll();
+
+  const backgroundColor = useTransform(
+    scrollY,
+    [0, 50],
+    ["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, 0.8)"]
+  );
+  const backdropFilter = useTransform(scrollY, [0, 50], ["blur(0px)", "blur(12px)"]);
+  const borderColor = useTransform(
+    scrollY,
+    [0, 50],
+    ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 0.1)"]
+  );
+  const paddingBlock = useTransform(scrollY, [0, 50], ["24px", "16px"]);
 
   return (
-    <header
-  className="fixed top-0 left-0 right-0 z-50 bg-background/60 backdrop-blur-md border-b border-border"
-  style={{
-    paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)",
-    paddingBottom: "0.75rem",
-  }}
->
-      <div className="container mx-auto flex items-center justify-between">
-        {/* LOGO */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="p-1 bg-primary/10 rounded">
-            <ZapIcon className="w-4 h-4 text-primary" />
-          </div>
-          <span className="text-xl font-bold font-mono">
-            Neuro<span className="text-primary">fit</span>.ai
-          </span>
+    <>
+      <motion.header
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          backgroundColor,
+          backdropFilter,
+          borderBottomColor: borderColor,
+          borderBottomWidth: 1,
+          borderBottomStyle: "solid",
+          paddingTop: paddingBlock,
+          paddingBottom: paddingBlock,
+        }}
+        className="fixed top-0 left-0 right-0 z-50 px-6 md:px-12 flex justify-between items-center"
+      >
+        <Link href="/" className="font-display text-2xl font-bold tracking-tighter uppercase text-white z-50">
+          <span>Neurofit</span><span className="text-xs font-mono font-normal text-muted-foreground">2.0</span>
         </Link>
 
-        {/* NAVIGATION */}
-        <nav className="flex items-center gap-5">
+        <div className="hidden md:flex gap-8 items-center">
           {isSignedIn ? (
             <>
-              <Link
-                href="/"
-                className="flex items-center gap-1.5 text-sm hover:text-primary transition-colors"
-              >
-                <HomeIcon size={16} />
-                <span>Home</span>
+              <Link href="/" className="text-sm text-white/70 hover:text-white transition-colors">
+                Home
               </Link>
-
               <Link
                 href="/generate-program"
-                className="flex items-center gap-1.5 text-sm hover:text-primary transition-colors"
+                className="text-sm text-white/70 hover:text-white transition-colors"
               >
-                <Phone size={16} />
-                <span>Generate</span>
+                Generate
               </Link>
-
-              <Link
-                href="/profile"
-                className="flex items-center gap-1.5 text-sm hover:text-primary transition-colors"
-              >
-                <UserIcon size={16} />
-                <span>Profile</span>
+              <Link href="/profile" className="text-sm text-white/70 hover:text-white transition-colors">
+                Profile
               </Link>
-              <Button
-                asChild
-                variant="outline"
-                className="ml-2 border-primary/50 text-primary hover:text-white hover:bg-primary/10"
-              >
-                <Link href="/generate-program">Get Started</Link>
-              </Button>
-              <UserButton />
             </>
           ) : (
             <>
-              <SignInButton>
-                <Button
-                  variant={"outline"}
-                  className="border-primary/50 text-primary hover:text-white hover:bg-primary/10"
-                >
-                  Sign In
-                </Button>
-              </SignInButton>
+              <Link href="#features" className="text-sm text-white/70 hover:text-white transition-colors">
+                Features
+              </Link>
+              <Link href="#about" className="text-sm text-white/70 hover:text-white transition-colors">
+                About
+              </Link>
+              <Link href="#pricing" className="text-sm text-white/70 hover:text-white transition-colors">
+                Pricing
+              </Link>
+            </>
+          )}
+        </div>
 
-              <SignUpButton>
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  Sign Up
-                </Button>
+        <div className="hidden md:flex items-center gap-3">
+          {isSignedIn ? (
+            <>
+              <SignOutButton>
+                <button className="border border-white/30 text-white px-6 py-2 rounded-full font-bold text-sm hover:border-orange-500 hover:text-orange-400 transition-all duration-300">
+                  Sign Out
+                </button>
+              </SignOutButton>
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "h-9 w-9 ring-2 ring-orange-500/50",
+                  },
+                }}
+              />
+            </>
+          ) : (
+            <>
+              <SignInButton 
+              mode="modal">
+                <button className="border border-white/30 text-white px-6 py-2 rounded-full font-bold text-sm hover:border-orange-500 hover:text-orange-400 transition-all duration-300">
+                  Sign In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="bg-orange-500 text-black px-6 py-2 rounded-full font-bold text-sm hover:bg-white hover:text-black transition-all duration-300 shadow-[0_0_20px_rgba(249,115,22,0.4)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]">
+                  Get Access
+                </button>
               </SignUpButton>
             </>
           )}
-        </nav>
-      </div>
-    </header>
+        </div>
+
+        <button className="md:hidden text-white z-50" onClick={() => setIsOpen((prev) => !prev)}>
+          {isOpen ? <X /> : <Menu />}
+        </button>
+      </motion.header>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-40 bg-black pt-24 px-6 md:hidden flex flex-col gap-8"
+          >
+            <div className="flex flex-col gap-6 text-2xl font-display font-bold">
+              {isSignedIn ? (
+                <>
+                  <Link href="/" onClick={() => setIsOpen(false)} className="text-white/70 hover:text-orange-500 transition-colors">
+                    Home
+                  </Link>
+                  <Link
+                    href="/generate-program"
+                    onClick={() => setIsOpen(false)}
+                    className="text-white/70 hover:text-orange-500 transition-colors"
+                  >
+                    Generate
+                  </Link>
+                  <Link
+                    href="/profile"
+                    onClick={() => setIsOpen(false)}
+                    className="text-white/70 hover:text-orange-500 transition-colors"
+                  >
+                    Profile
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="#features"
+                    onClick={() => setIsOpen(false)}
+                    className="text-white/70 hover:text-orange-500 transition-colors"
+                  >
+                    Features
+                  </Link>
+                  <Link
+                    href="#about"
+                    onClick={() => setIsOpen(false)}
+                    className="text-white/70 hover:text-orange-500 transition-colors"
+                  >
+                    About
+                  </Link>
+                  <Link
+                    href="#pricing"
+                    onClick={() => setIsOpen(false)}
+                    className="text-white/70 hover:text-orange-500 transition-colors"
+                  >
+                    Pricing
+                  </Link>
+                </>
+              )}
+            </div>
+
+            <div className="mt-auto pb-10 flex flex-col gap-4">
+              {isSignedIn ? (
+                <>
+                  <SignOutButton>
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="w-full border border-white/30 text-white py-4 rounded-full font-bold text-lg hover:border-orange-500 hover:text-orange-400 transition-all duration-300"
+                    >
+                      Sign Out
+                    </button>
+                  </SignOutButton>
+                  <div className="flex justify-center">
+                    <UserButton
+                      appearance={{
+                        elements: {
+                          avatarBox: "h-11 w-11 ring-2 ring-orange-500/50",
+                        },
+                      }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <SignInButton mode="modal">
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="w-full border border-white/30 text-white py-4 rounded-full font-bold text-lg hover:border-orange-500 hover:text-orange-400 transition-all duration-300"
+                    >
+                      Sign In
+                    </button>
+                  </SignInButton>
+
+                  <SignUpButton mode="modal">
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="w-full bg-orange-500 text-black py-4 rounded-full font-bold text-lg hover:bg-white hover:text-black transition-all duration-300 shadow-[0_0_20px_rgba(249,115,22,0.4)]"
+                    >
+                      Get Access
+                    </button>
+                  </SignUpButton>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 export default Navbar;
