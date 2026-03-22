@@ -5,7 +5,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-} from "@/app/components/ui/dialog";
+} from "@/components/ui/dialog";
 
 type ConfirmDeleteDialogProps = {
   open: boolean;

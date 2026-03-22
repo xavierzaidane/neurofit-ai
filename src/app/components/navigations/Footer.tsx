@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="container mx-auto px-6 md:px-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
           <div>
-            <h2 className="font-display text-2xl font-bold text-white mb-2">NEUROFIT</h2>
+            <h2 className="font-display text-2xl font-bold text-white mb-2">NEUROFIT<span className="text-xs font-mono font-normal text-muted-foreground">2.0</span></h2>
             <p className="text-white/40 text-sm max-w-xs">
               Pioneering the future of autonomous digital intelligence.
             </p>

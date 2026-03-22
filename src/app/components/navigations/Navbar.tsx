@@ -58,7 +58,7 @@ const Navbar = () => {
                 Home
               </Link>
               <Link
-                href="/generate-program"
+                href="/program"
                 className="text-sm text-white/70 hover:text-white transition-colors"
               >
                 Generate
@@ -86,14 +86,14 @@ const Navbar = () => {
           {isSignedIn ? (
             <>
               <SignOutButton>
-                <button className="border border-white/30 text-white px-6 py-2 rounded-full font-bold text-sm hover:border-orange-500 hover:text-orange-400 transition-all duration-300">
+                <button className="border border-white/30 text-white px-6 py-2 rounded-full font-medium text-sm hover:border-white/20 hover:text-foreground/50 transition-all duration-300">
                   Sign Out
                 </button>
               </SignOutButton>
               <UserButton
                 appearance={{
                   elements: {
-                    avatarBox: "h-9 w-9 ring-2 ring-orange-500/50",
+                    avatarBox: "h-9 w-9 ring-2 ring-foreground/50",
                   },
                 }}
               />
@@ -102,12 +102,12 @@ const Navbar = () => {
             <>
               <SignInButton 
               mode="modal">
-                <button className="border border-white/30 text-white px-6 py-2 rounded-full font-bold text-sm hover:border-orange-500 hover:text-orange-400 transition-all duration-300">
+                <button className="border border-white/30 text-white px-6 py-2 rounded-full font-medium text-sm hover:border-white/20 hover:text-foreground/50 transition-all duration-300">
                   Sign In
                 </button>
               </SignInButton>
               <SignUpButton mode="modal">
-                <button className="bg-orange-500 text-black px-6 py-2 rounded-full font-bold text-sm hover:bg-white hover:text-black transition-all duration-300 shadow-[0_0_20px_rgba(249,115,22,0.4)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]">
+                <button className="bg-foreground text-black px-6 py-2 rounded-full font-bold text-sm hover:bg-white hover:text-black transition-all duration-300 ">
                   Get Access
                 </button>
               </SignUpButton>
@@ -131,20 +131,20 @@ const Navbar = () => {
             <div className="flex flex-col gap-6 text-2xl font-display font-bold">
               {isSignedIn ? (
                 <>
-                  <Link href="/" onClick={() => setIsOpen(false)} className="text-white/70 hover:text-orange-500 transition-colors">
+                  <Link href="/" onClick={() => setIsOpen(false)} className="text-white/70 hover:text-foreground transition-colors">
                     Home
                   </Link>
                   <Link
-                    href="/generate-program"
+                    href="/program"
                     onClick={() => setIsOpen(false)}
-                    className="text-white/70 hover:text-orange-500 transition-colors"
+                    className="text-white/70 hover:text-foreground transition-colors"
                   >
                     Generate
                   </Link>
                   <Link
                     href="/profile"
                     onClick={() => setIsOpen(false)}
-                    className="text-white/70 hover:text-orange-500 transition-colors"
+                    className="text-white/70 hover:text-foreground transition-colors"
                   >
                     Profile
                   </Link>
@@ -154,21 +154,21 @@ const Navbar = () => {
                   <Link
                     href="#features"
                     onClick={() => setIsOpen(false)}
-                    className="text-white/70 hover:text-orange-500 transition-colors"
+                    className="text-white/70 hover:text-foreground transition-colors"
                   >
                     Features
                   </Link>
                   <Link
                     href="#about"
                     onClick={() => setIsOpen(false)}
-                    className="text-white/70 hover:text-orange-500 transition-colors"
+                    className="text-white/70 hover:text-foreground transition-colors"
                   >
                     About
                   </Link>
                   <Link
                     href="#pricing"
                     onClick={() => setIsOpen(false)}
-                    className="text-white/70 hover:text-orange-500 transition-colors"
+                    className="text-white/70 hover:text-foreground transition-colors"
                   >
                     Pricing
                   </Link>
@@ -182,7 +182,7 @@ const Navbar = () => {
                   <SignOutButton>
                     <button
                       onClick={() => setIsOpen(false)}
-                      className="w-full border border-white/30 text-white py-4 rounded-full font-bold text-lg hover:border-orange-500 hover:text-orange-400 transition-all duration-300"
+                      className="w-full border border-white/30 text-white py-4 rounded-full font-bold text-lg hover:border-foreground hover:text-foreground/50 transition-all duration-300"
                     >
                       Sign Out
                     </button>
@@ -191,7 +191,7 @@ const Navbar = () => {
                     <UserButton
                       appearance={{
                         elements: {
-                          avatarBox: "h-11 w-11 ring-2 ring-orange-500/50",
+                          avatarBox: "h-11 w-11 ring-2 ring-foreground/50",
                         },
                       }}
                     />
@@ -202,7 +202,7 @@ const Navbar = () => {
                   <SignInButton mode="modal">
                     <button
                       onClick={() => setIsOpen(false)}
-                      className="w-full border border-white/30 text-white py-4 rounded-full font-bold text-lg hover:border-orange-500 hover:text-orange-400 transition-all duration-300"
+                      className="w-full border border-white/30 text-white py-4 rounded-full font-bold text-lg hover:border-foreground hover:text-foreground/50 transition-all duration-300"
                     >
                       Sign In
                     </button>
@@ -211,7 +211,7 @@ const Navbar = () => {
                   <SignUpButton mode="modal">
                     <button
                       onClick={() => setIsOpen(false)}
-                      className="w-full bg-orange-500 text-black py-4 rounded-full font-bold text-lg hover:bg-white hover:text-black transition-all duration-300 shadow-[0_0_20px_rgba(249,115,22,0.4)]"
+                      className="w-full bg-foreground text-black py-4 rounded-full font-bold text-lg hover:bg-white hover:text-black transition-all duration-300 shadow-[0_0_20px_rgba(249,115,22,0.4)]"
                     >
                       Get Access
                     </button>

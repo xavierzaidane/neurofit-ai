@@ -13,7 +13,7 @@ export default function About() {
   const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
   return (
-    <section ref={ref} id="about" className="py-32 bg-orange-500 text-black relative overflow-hidden">
+    <section ref={ref} id="about" className="py-32 bg-foreground text-black relative overflow-hidden">
       <div className="container mx-auto px-6 md:px-12">
         <div className="flex flex-col gap-20">
           

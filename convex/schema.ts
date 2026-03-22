@@ -39,6 +39,24 @@ export default defineSchema({
         })
       ),
     }),
+    grocerylistPlan: v.optional(
+      v.object({
+        categories: v.array(
+          v.object({
+            name: v.string(),
+            items: v.array(v.string()),
+          })
+        ),
+      })
+    ),
+    macrosPlan: v.optional(
+      v.object({
+        dailyCalories: v.number(),
+        proteinGrams: v.number(),
+        carbsGrams: v.number(),
+        fatGrams: v.number(),
+      })
+    ),
     isActive: v.boolean(),
     
   })

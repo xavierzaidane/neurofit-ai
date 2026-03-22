@@ -10,7 +10,7 @@ const features = [
     title: "NEURAL PROCESSING",
     description: "Cognitive architecture that adapts in real-time.",
     colSpan: "md:col-span-2",
-    bg: "bg-orange-500",
+    bg: "bg-foreground",
     text: "text-black"
   },
   {
@@ -54,9 +54,9 @@ export default function Features() {
         <div className="mb-24">
           <h2 className="font-display text-4xl md:text-6xl lg:text-8xl font-bold text-white mb-8 leading-[0.85] tracking-tighter uppercase">
             Engineered <br />
-            <span className="text-orange-500">Dominance.</span>
+            <span className="text-foreground">Dominance.</span>
           </h2>
-          <div className="h-2 w-32 bg-orange-500" />
+          <div className="h-2 w-32 bg-foreground" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

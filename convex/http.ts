@@ -3,11 +3,69 @@ import { WebhookEvent } from "@clerk/nextjs/server";
 import { Webhook } from "svix";
 import { api } from "./_generated/api";
 import { httpAction } from "./_generated/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const http = httpRouter();
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const ollamaBaseUrl = process.env.OLLAMA_BASE_URL;
+const ollamaModel = process.env.OLLAMA_MODEL;
+const ollamaApiKey = process.env.OLLAMA_API_KEY;
+const corsOrigin = process.env.CORS_ORIGIN || "*";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": corsOrigin,
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+const buildOllamaUrl = (path: string) => new URL(path, ollamaBaseUrl).toString();
+
+const buildOllamaHeaders = () => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (ollamaApiKey) {
+    headers.Authorization = `Bearer ${ollamaApiKey}`;
+  }
+
+  return headers;
+};
+
+const extractJson = (content: string) => {
+  const trimmed = content.trim();
+  const startIndex = trimmed.indexOf("{");
+  const endIndex = trimmed.lastIndexOf("}");
+  if (startIndex === -1 || endIndex === -1) {
+    return trimmed;
+  }
+  return trimmed.slice(startIndex, endIndex + 1);
+};
+
+const callOllamaChat = async (messages: Array<{ role: string; content: string }>) => {
+  const response = await fetch(buildOllamaUrl("/api/chat"), {
+    method: "POST",
+    headers: buildOllamaHeaders(),
+    body: JSON.stringify({
+      model: ollamaModel,
+      messages,
+      stream: false,
+      format: "json",
+      options: {
+        temperature: 0.4,
+        top_p: 0.9,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Ollama request failed (${response.status}): ${errorText}`);
+  }
+
+  const data = await response.json();
+
+  return data.message.content;
+};
+
 
 http.route({
   path: "/clerk-webhook",
@@ -110,7 +168,10 @@ function validateWorkoutPlan(plan: any) {
 function validateDietPlan(plan: any) {
   // only keep the fields we want
   const validatedPlan = {
-    dailyCalories: plan.dailyCalories,
+    dailyCalories:
+      typeof plan.dailyCalories === "number"
+        ? plan.dailyCalories
+        : parseInt(plan.dailyCalories) || 2000,
     meals: plan.meals.map((meal: any) => ({
       name: meal.name,
       foods: meal.foods,
@@ -119,8 +180,46 @@ function validateDietPlan(plan: any) {
   return validatedPlan;
 }
 
+function validateGrocerylistPlan(plan: any) {
+  const validatedPlan = {
+    categories: (plan.categories || []).map((category: any) => ({
+      name: category.name,
+      items: Array.isArray(category.items) ? category.items : [],
+    })),
+  };
+  return validatedPlan;
+}
+
+function validateMacrosPlan(plan: any) {
+  const validatedPlan = {
+    dailyCalories:
+      typeof plan.dailyCalories === "number"
+        ? plan.dailyCalories
+        : parseInt(plan.dailyCalories) || 2000,
+    proteinGrams:
+      typeof plan.proteinGrams === "number"
+        ? plan.proteinGrams
+        : parseInt(plan.proteinGrams) || 120,
+    carbsGrams:
+      typeof plan.carbsGrams === "number"
+        ? plan.carbsGrams
+        : parseInt(plan.carbsGrams) || 200,
+    fatGrams:
+      typeof plan.fatGrams === "number"
+        ? plan.fatGrams
+        : parseInt(plan.fatGrams) || 60,
+  };
+  return validatedPlan;
+}
+
 http.route({
-  path: "/vapi/generate-program",
+  path: "/ollama/generate-program",
+  method: "OPTIONS",
+  handler: httpAction(async () => new Response(null, { status: 204, headers: corsHeaders })),
+});
+
+http.route({
+  path: "/ollama/generate-program",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     try {
@@ -131,32 +230,52 @@ http.route({
         age,
         height,
         weight,
+        gender,
+        status,
+        body_fat,
         injuries,
         workout_days,
+        training_style,
+        target_timeline,
         fitness_goal,
         fitness_level,
         dietary_restrictions,
+        food_allergies,
+        daily_calories,
+        protein_target,
+        carbs_target,
+        fat_target,
+        meals_per_day,
+        working_hours,
+        sleep_hours,
+        stress_level,
+        workout_time,
+        available_equipment,
+        country_region,
+        city_region,
       } = payload;
 
       console.log("Payload is here:", payload);
-
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash-001",
-        generationConfig: {
-          temperature: 0.4, // lower temperature for more predictable outputs
-          topP: 0.9,
-          responseMimeType: "application/json",
-        },
-      });
 
       const workoutPrompt = `You are an experienced fitness coach creating a personalized workout plan based on:
       Age: ${age}
       Height: ${height}
       Weight: ${weight}
+      Gender: ${gender}
+      Status: ${status}
+      Body fat %: ${body_fat}
       Injuries or limitations: ${injuries}
       Available days for workout: ${workout_days}
+      Target timeline: ${target_timeline}
       Fitness goal: ${fitness_goal}
       Fitness level: ${fitness_level}
+      Preferred training style: ${training_style}
+      Preferred workout time: ${workout_time}
+      Available equipment: ${available_equipment}
+      Location: ${city_region}, ${country_region}
+      Working hours: ${working_hours}
+      Sleep hours: ${sleep_hours}
+      Stress level: ${stress_level}
       
       As a professional coach:
       - Consider muscle group splits to avoid overtraining the same muscles on consecutive days
@@ -192,11 +311,17 @@ http.route({
       
       DO NOT add any fields that are not in this example. Your response must be a valid JSON object with no additional text.`;
 
-      const workoutResult = await model.generateContent(workoutPrompt);
-      const workoutPlanText = workoutResult.response.text();
+      const workoutPlanText = await callOllamaChat([
+        {
+          role: "system",
+          content:
+            "Return only valid JSON. Do not include markdown, commentary, or extra keys.",
+        },
+        { role: "user", content: workoutPrompt },
+      ]);
 
       // VALIDATE THE INPUT COMING FROM AI
-      let workoutPlan = JSON.parse(workoutPlanText);
+      let workoutPlan = JSON.parse(extractJson(workoutPlanText));
       workoutPlan = validateWorkoutPlan(workoutPlan);
 
       const dietPrompt = `You are an experienced nutrition coach creating a personalized diet plan based on:
@@ -204,7 +329,14 @@ http.route({
         Height: ${height}
         Weight: ${weight}
         Fitness goal: ${fitness_goal}
+        Fitness level: ${fitness_level}
+        Daily calories target (user input): ${daily_calories}
         Dietary restrictions: ${dietary_restrictions}
+        Food allergies: ${food_allergies}
+        Meals per day: ${meals_per_day}
+        Protein target (g): ${protein_target}
+        Carbs target (g): ${carbs_target}
+        Fat target (g): ${fat_target}
         
         As a professional nutrition coach:
         - Calculate appropriate daily calorie intake based on the person's stats and goals
@@ -236,20 +368,103 @@ http.route({
         
         DO NOT add any fields that are not in this example. Your response must be a valid JSON object with no additional text.`;
 
-      const dietResult = await model.generateContent(dietPrompt);
-      const dietPlanText = dietResult.response.text();
+      const dietPlanText = await callOllamaChat([
+        {
+          role: "system",
+          content:
+            "Return only valid JSON. Do not include markdown, commentary, or extra keys.",
+        },
+        { role: "user", content: dietPrompt },
+      ]);
 
       // VALIDATE THE INPUT COMING FROM AI
-      let dietPlan = JSON.parse(dietPlanText);
+      let dietPlan = JSON.parse(extractJson(dietPlanText));
       dietPlan = validateDietPlan(dietPlan);
+
+      const macrosPrompt = `You are an experienced nutrition coach creating daily macro targets based on this user's personalized diet context:
+        Age: ${age}
+        Height: ${height}
+        Weight: ${weight}
+        Fitness goal: ${fitness_goal}
+        Fitness level: ${fitness_level}
+        Daily calories target: ${dietPlan.dailyCalories}
+        Dietary restrictions: ${dietary_restrictions}
+
+        CRITICAL SCHEMA INSTRUCTIONS:
+        - Your output MUST contain ONLY these fields: dailyCalories, proteinGrams, carbsGrams, fatGrams
+        - ALL values MUST be NUMBERS, never strings
+        - Use realistic macro targets for the user's goal and calories
+
+        Return a JSON object with this EXACT structure and no other fields:
+        {
+          "dailyCalories": 2200,
+          "proteinGrams": 160,
+          "carbsGrams": 240,
+          "fatGrams": 70
+        }
+
+        DO NOT add any fields that are not in this example. Your response must be valid JSON with no extra text.`;
+
+      const macrosPlanText = await callOllamaChat([
+        {
+          role: "system",
+          content:
+            "Return only valid JSON. Do not include markdown, commentary, or extra keys.",
+        },
+        { role: "user", content: macrosPrompt },
+      ]);
+
+      let macrosPlan = JSON.parse(extractJson(macrosPlanText));
+      macrosPlan = validateMacrosPlan(macrosPlan);
+
+      const grocerylistPrompt = `You are an experienced nutrition coach creating a grocery list from this diet plan.
+        Daily calories target: ${dietPlan.dailyCalories}
+        Meals JSON: ${JSON.stringify(dietPlan.meals)}
+        Dietary restrictions: ${dietary_restrictions}
+
+        CRITICAL SCHEMA INSTRUCTIONS:
+        - Your output MUST contain ONLY this top-level field: categories
+        - categories MUST be an array of objects with ONLY: name, items
+        - items MUST be an array of strings
+        - Keep grocery items practical and grouped by category
+
+        Return a JSON object with this EXACT structure and no other fields:
+        {
+          "categories": [
+            {
+              "name": "Proteins",
+              "items": ["Chicken breast", "Greek yogurt"]
+            },
+            {
+              "name": "Produce",
+              "items": ["Spinach", "Blueberries"]
+            }
+          ]
+        }
+
+        DO NOT add any fields that are not in this example. Your response must be valid JSON with no extra text.`;
+
+      const grocerylistPlanText = await callOllamaChat([
+        {
+          role: "system",
+          content:
+            "Return only valid JSON. Do not include markdown, commentary, or extra keys.",
+        },
+        { role: "user", content: grocerylistPrompt },
+      ]);
+
+      let grocerylistPlan = JSON.parse(extractJson(grocerylistPlanText));
+      grocerylistPlan = validateGrocerylistPlan(grocerylistPlan);
 
       // save to our DB: CONVEX
       const planId = await ctx.runMutation(api.plans.createPlan, {
         userId: user_id,
         dietPlan,
+        grocerylistPlan,
         isActive: true,
+        macrosPlan,
         workoutPlan,
-        name: `${fitness_goal} Plan - ${new Date().toLocaleDateString()}`,
+        name: `${fitness_goal || "Custom"} Plan - ${new Date().toLocaleDateString()}`,
       });
 
       return new Response(
@@ -259,11 +474,13 @@ http.route({
             planId,
             workoutPlan,
             dietPlan,
+            grocerylistPlan,
+            macrosPlan,
           },
         }),
         {
           status: 200,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
     } catch (error) {
@@ -275,7 +492,7 @@ http.route({
         }),
         {
           status: 500,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
     }

@@ -40,7 +40,7 @@ export default function Pricing() {
         <motion.div style={{ y }} className="mb-24 text-center">
           <h2 className="font-display text-6xl md:text-8xl font-bold text-white uppercase tracking-tighter">
             Select Your <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">Power Level.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground to-foreground">Power Level.</span>
           </h2>
         </motion.div>
 
@@ -54,13 +54,13 @@ export default function Pricing() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className={`relative p-8 md:p-12 rounded-3xl border-2 flex flex-col transition-transform duration-500 hover:scale-105 ${
                 plan.highlight 
-                  ? 'bg-orange-500 border-orange-500 text-black scale-105 z-10 shadow-[0_0_50px_rgba(249,115,22,0.3)]' 
+                  ? 'bg-foreground border-foreground text-black scale-105 z-10 shadow-[0_0_50px_rgba(249,115,22,0.3)]' 
                   : 'bg-black border-white/20 text-white hover:border-white'
               }`}
             >
               {plan.highlight && (
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-black text-orange-500 px-6 py-2 rounded-full font-bold uppercase tracking-widest border border-orange-500 flex items-center gap-2">
-                  <Zap className="w-4 h-4 fill-orange-500" />
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-black text-foreground px-6 py-2 rounded-full font-bold uppercase tracking-widest border border-foreground flex items-center gap-2">
+                  <Zap className="w-4 h-4 fill-foreground" />
                   Most Popular
                 </div>
               )}
@@ -74,7 +74,7 @@ export default function Pricing() {
                 <ul className="space-y-4">
                   {plan.features.map((feature, i) => (
                     <li key={i} className="flex items-center gap-3 font-bold tracking-wide text-sm">
-                      <Check className={`w-5 h-5 ${plan.highlight ? 'text-black' : 'text-orange-500'}`} />
+                      <Check className={`w-5 h-5 ${plan.highlight ? 'text-black' : 'text-foreground'}`} />
                       {feature}
                     </li>
                   ))}
@@ -85,7 +85,7 @@ export default function Pricing() {
                 className={`w-full py-5 rounded-xl font-bold text-lg uppercase tracking-widest transition-all duration-300 ${
                   plan.highlight 
                     ? 'bg-black text-white hover:bg-white hover:text-black' 
-                    : 'bg-white text-black hover:bg-orange-500 hover:text-white'
+                    : 'bg-white text-black hover:bg-foreground hover:text-white'
                 }`}
               >
                 Initialize
