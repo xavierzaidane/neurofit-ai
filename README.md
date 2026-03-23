@@ -1,4 +1,4 @@
-# NeuroFit AI
+# NeuroFit2.0
 
 A React/Next.js web app that allows users to generate personalized fitness programs via a structured intake form powered by Ollama. Uses Clerk for authentication and Convex for backend services.
 
