@@ -41,7 +41,7 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             <span className="inline-block px-3 py-1 mb-4 md:mb-6 text-[10px] md:text-xs font-medium tracking-wider text-foreground uppercase border border-foreground/30 rounded-full bg-foreground/10 backdrop-blur-sm">
-              Next Gen AI Agent
+              Fitness AI Planner
             </span>
           </motion.div>
           
@@ -51,9 +51,9 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white mb-4 md:mb-6 leading-[0.95] md:leading-[0.9]"
           >
-            INTELLIGENCE <br />
+            FITNESS <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/50">
-              REDEFINED.
+              REIMAGINED.
             </span>
           </motion.h1>
 
@@ -63,7 +63,7 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="text-base md:text-xl text-white/70 md:text-white/60 mb-8 md:mb-10 max-w-lg leading-relaxed"
           >
-            Meet NexBot, your autonomous companion designed to navigate the digital world with human-like understanding and machine precision.
+            Meet Neurofit2.0, your AI training partner that builds adaptive workouts, nutrition targets, and recovery plans tailored to your goals.
           </motion.p>
 
           <motion.div 
@@ -74,14 +74,14 @@ export default function Hero() {
           >
              <Link href={"/program"} >
             <button className="group flex items-center justify-center gap-2 bg-white text-black px-8 py-4 rounded-full font-medium text-lg hover:bg-foreground hover:text-white transition-all hover:scale-105 active:scale-95 duration-300 w-full sm:w-auto">
-              Start Building
+              Build My Plan
               
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               
             </button>
             </Link>
             <button className="flex items-center justify-center gap-2 px-8 py-4 rounded-full font-medium text-lg text-white border border-white/20 hover:bg-white/10 transition-all backdrop-blur-sm w-full sm:w-auto">
-              Watch Demo
+              See How It Works
             </button>
           </motion.div>
         </div>

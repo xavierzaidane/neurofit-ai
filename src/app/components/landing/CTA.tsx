@@ -27,14 +27,14 @@ export default function CTA() {
         >
           <h2 className="font-display text-[15vw] leading-[0.8] font-bold text-black mb-8 tracking-tighter uppercase">
             BUILD <br />
-            THE <br />
-            FUTURE
+            DREAM <br />
+            PHYSIQUE
           </h2>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12">
              <Link href={"/program"} >
             <button className="group bg-black text-white px-12 py-6 rounded-full font-bold text-xl hover:bg-white hover:text-black transition-all hover:scale-105 active:scale-95 duration-300 flex items-center gap-3">
-              START NOW
+              START BUILDING
               <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
             </button>
             </Link>

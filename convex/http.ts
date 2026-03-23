@@ -6,7 +6,10 @@ import { httpAction } from "./_generated/server";
 
 const http = httpRouter();
 
-const ollamaBaseUrl = process.env.OLLAMA_BASE_URL;
+const defaultOllamaBaseUrl = "http://127.0.0.1:11434";
+const ollamaBaseUrl =
+  process.env.OLLAMA_BASE_URL ||
+  (process.env.NODE_ENV === "production" ? undefined : defaultOllamaBaseUrl);
 const ollamaModel = process.env.OLLAMA_MODEL;
 const ollamaApiKey = process.env.OLLAMA_API_KEY;
 const corsOrigin = process.env.CORS_ORIGIN || "*";
@@ -16,7 +19,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
-const buildOllamaUrl = (path: string) => new URL(path, ollamaBaseUrl).toString();
+const buildOllamaUrl = (path: string) => {
+  if (!ollamaBaseUrl) {
+    throw new Error(
+      "Missing OLLAMA_BASE_URL environment variable (required in production)."
+    );
+  }
+
+  return new URL(path, ollamaBaseUrl).toString();
+};
 
 const buildOllamaHeaders = () => {
   const headers: Record<string, string> = {
@@ -39,6 +50,39 @@ const extractJson = (content: string) => {
   }
   return trimmed.slice(startIndex, endIndex + 1);
 };
+
+const safeParseJson = (raw: string, context: string) => {
+  const extracted = extractJson(raw);
+  try {
+    return JSON.parse(extracted);
+  } catch (error) {
+    console.error(`Failed to parse AI JSON (${context}):`, error);
+    console.error("Raw AI output:", raw);
+    throw new Error("AI response was not valid JSON.");
+  }
+};
+
+const normalizeCacheInput = (value: string | undefined | null) =>
+  (value ?? "").toString().trim().toLowerCase();
+
+const buildCacheKey = (inputs: {
+  age: string;
+  weight: string;
+  height: string;
+  fitnessGoal: string;
+  fitnessLevel: string;
+  workoutDays: string;
+}) =>
+  [
+    inputs.age,
+    inputs.weight,
+    inputs.height,
+    inputs.fitnessGoal,
+    inputs.fitnessLevel,
+    inputs.workoutDays,
+  ]
+    .map(normalizeCacheInput)
+    .join("|");
 
 const callOllamaChat = async (messages: Array<{ role: string; content: string }>) => {
   const response = await fetch(buildOllamaUrl("/api/chat"), {
@@ -65,6 +109,16 @@ const callOllamaChat = async (messages: Array<{ role: string; content: string }>
 
   return data.message.content;
 };
+
+const generateFitnessPlan = async (prompt: string) =>
+  callOllamaChat([
+    {
+      role: "system",
+      content:
+        "Return ONLY valid JSON. Do not include markdown, commentary, or extra keys.",
+    },
+    { role: "user", content: prompt },
+  ]);
 
 
 http.route({
@@ -257,212 +311,139 @@ http.route({
 
       console.log("Payload is here:", payload);
 
-      const workoutPrompt = `You are an experienced fitness coach creating a personalized workout plan based on:
-      Age: ${age}
-      Height: ${height}
-      Weight: ${weight}
-      Gender: ${gender}
-      Status: ${status}
-      Body fat %: ${body_fat}
-      Injuries or limitations: ${injuries}
-      Available days for workout: ${workout_days}
-      Target timeline: ${target_timeline}
-      Fitness goal: ${fitness_goal}
-      Fitness level: ${fitness_level}
-      Preferred training style: ${training_style}
-      Preferred workout time: ${workout_time}
-      Available equipment: ${available_equipment}
-      Location: ${city_region}, ${country_region}
-      Working hours: ${working_hours}
-      Sleep hours: ${sleep_hours}
-      Stress level: ${stress_level}
-      
-      As a professional coach:
-      - Consider muscle group splits to avoid overtraining the same muscles on consecutive days
-      - Design exercises that match the fitness level and account for any injuries
-      - Structure the workouts to specifically target the user's fitness goal
-      
-      CRITICAL SCHEMA INSTRUCTIONS:
-      - Your output MUST contain ONLY the fields specified below, NO ADDITIONAL FIELDS
-      - "sets" and "reps" MUST ALWAYS be NUMBERS, never strings
-      - For example: "sets": 3, "reps": 10
-      - Do NOT use text like "reps": "As many as possible" or "reps": "To failure"
-      - Instead use specific numbers like "reps": 12 or "reps": 15
-      - For cardio, use "sets": 1, "reps": 1 or another appropriate number
-      - NEVER include strings for numerical fields
-      - NEVER add extra fields not shown in the example below
-      
-      Return a JSON object with this EXACT structure:
-      {
-        "schedule": ["Monday", "Wednesday", "Friday"],
-        "exercises": [
+      const cacheKey = buildCacheKey({
+        age,
+        weight,
+        height,
+        fitnessGoal: fitness_goal,
+        fitnessLevel: fitness_level,
+        workoutDays: workout_days,
+      });
+
+      const cachedPlan = await ctx.runQuery(api.plans.getPlanByCacheKey, {
+        cacheKey,
+      });
+
+      if (cachedPlan) {
+        const workoutPlan = validateWorkoutPlan(cachedPlan.workoutPlan);
+        const dietPlan = validateDietPlan(cachedPlan.dietPlan);
+        const macrosPlan = cachedPlan.macrosPlan
+          ? validateMacrosPlan(cachedPlan.macrosPlan)
+          : undefined;
+        const grocerylistPlan = cachedPlan.grocerylistPlan
+          ? validateGrocerylistPlan(cachedPlan.grocerylistPlan)
+          : undefined;
+
+        const planId = await ctx.runMutation(api.plans.createPlan, {
+          userId: user_id,
+          name: cachedPlan.name,
+          workoutPlan,
+          dietPlan,
+          grocerylistPlan,
+          macrosPlan,
+          isActive: true,
+          cacheKey,
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              planId,
+              workoutPlan,
+              dietPlan,
+              grocerylistPlan,
+              macrosPlan,
+            },
+          }),
           {
-            "day": "Monday",
-            "routines": [
-              {
-                "name": "Exercise Name",
-                "sets": 3,
-                "reps": 10
-              }
-            ]
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
           }
+        );
+      }
+
+      const unifiedPrompt = `You are an experienced fitness and nutrition coach creating a complete plan in a single response.
+
+User profile:
+Age: ${age}
+Height: ${height}
+Weight: ${weight}
+Gender: ${gender}
+Status: ${status}
+Body fat %: ${body_fat}
+Injuries or limitations: ${injuries}
+Available days for workout: ${workout_days}
+Target timeline: ${target_timeline}
+Fitness goal: ${fitness_goal}
+Fitness level: ${fitness_level}
+Preferred training style: ${training_style}
+Preferred workout time: ${workout_time}
+Available equipment: ${available_equipment}
+Location: ${city_region}, ${country_region}
+Working hours: ${working_hours}
+Sleep hours: ${sleep_hours}
+Stress level: ${stress_level}
+Daily calories target (user input): ${daily_calories}
+Dietary restrictions: ${dietary_restrictions}
+Food allergies: ${food_allergies}
+Meals per day: ${meals_per_day}
+Protein target (g): ${protein_target}
+Carbs target (g): ${carbs_target}
+Fat target (g): ${fat_target}
+
+Requirements:
+- Consider muscle group splits to avoid overtraining consecutive days.
+- Match exercises to fitness level and injuries.
+- Align workouts and diet to the fitness goal and timeline.
+- Prefer local foods based on the user's location.
+
+CRITICAL SCHEMA INSTRUCTIONS:
+- Return ONLY valid JSON. No markdown. No explanation.
+- Output MUST contain ONLY the fields shown in the schema below.
+- ALL numeric values MUST be numbers (never strings).
+- Do NOT add extra fields.
+
+Return a JSON object with this EXACT structure:
+{
+  "workoutPlan": {
+    "schedule": ["Monday", "Wednesday", "Friday"],
+    "exercises": [
+      {
+        "day": "Monday",
+        "routines": [
+          { "name": "Exercise Name", "sets": 3, "reps": 10 }
         ]
       }
-      
-      DO NOT add any fields that are not in this example. Your response must be a valid JSON object with no additional text.`;
+    ]
+  },
+  "dietPlan": {
+    "dailyCalories": 2000,
+    "meals": [
+      { "name": "Breakfast", "foods": ["Oatmeal", "Greek yogurt"] }
+    ]
+  },
+  "macrosPlan": {
+    "dailyCalories": 2200,
+    "proteinGrams": 160,
+    "carbsGrams": 240,
+    "fatGrams": 70
+  },
+  "grocerylistPlan": {
+    "categories": [
+      { "name": "Proteins", "items": ["Chicken breast", "Greek yogurt"] }
+    ]
+  }
+}`;
 
-      const workoutPlanText = await callOllamaChat([
-        {
-          role: "system",
-          content:
-            "Return only valid JSON. Do not include markdown, commentary, or extra keys.",
-        },
-        { role: "user", content: workoutPrompt },
-      ]);
+      const rawPlanText = await generateFitnessPlan(unifiedPrompt);
+      const parsedPlan = safeParseJson(rawPlanText, "unified-plan");
 
-      // VALIDATE THE INPUT COMING FROM AI
-      let workoutPlan = JSON.parse(extractJson(workoutPlanText));
-      workoutPlan = validateWorkoutPlan(workoutPlan);
+      let workoutPlan = validateWorkoutPlan(parsedPlan.workoutPlan);
+      let dietPlan = validateDietPlan(parsedPlan.dietPlan);
+      let macrosPlan = validateMacrosPlan(parsedPlan.macrosPlan);
+      let grocerylistPlan = validateGrocerylistPlan(parsedPlan.grocerylistPlan);
 
-      const dietPrompt = `You are an experienced nutrition coach creating a personalized diet plan based on:
-        Age: ${age}
-        Height: ${height}
-        Weight: ${weight}
-        Fitness goal: ${fitness_goal}
-        Fitness level: ${fitness_level}
-        Daily calories target (user input): ${daily_calories}
-        Dietary restrictions: ${dietary_restrictions}
-        Food allergies: ${food_allergies}
-        Meals per day: ${meals_per_day}
-        Protein target (g): ${protein_target}
-        Carbs target (g): ${carbs_target}
-        Fat target (g): ${fat_target}
-        Location: ${city_region}, ${country_region}
-        
-        As a professional nutrition coach:
-        - Calculate appropriate daily calorie intake based on the person's stats and goals
-        - Create a balanced meal plan with proper macronutrient distribution
-        - Include a variety of nutrient-dense foods while respecting dietary restrictions
-        - Prefer ingredients, meal names, and food choices that are common in the user's location
-        - If a food is not locally common, replace it with a realistic local alternative
-        - Consider meal timing around workouts for optimal performance and recovery
-        
-        CRITICAL SCHEMA INSTRUCTIONS:
-        - Your output MUST contain ONLY the fields specified below, NO ADDITIONAL FIELDS
-        - "dailyCalories" MUST be a NUMBER, not a string
-        - DO NOT add fields like "supplements", "macros", "notes", or ANYTHING else
-        - ONLY include the EXACT fields shown in the example below
-        - Each meal should include ONLY a "name" and "foods" array
-
-        Return a JSON object with this EXACT structure and no other fields:
-        {
-          "dailyCalories": 2000,
-          "meals": [
-            {
-              "name": "Breakfast",
-              "foods": ["Oatmeal with berries", "Greek yogurt", "Black coffee"]
-            },
-            {
-              "name": "Lunch",
-              "foods": ["Grilled chicken salad", "Whole grain bread", "Water"]
-            }
-          ]
-        }
-        
-        DO NOT add any fields that are not in this example. Your response must be a valid JSON object with no additional text.`;
-
-      const dietPlanText = await callOllamaChat([
-        {
-          role: "system",
-          content:
-            "Return only valid JSON. Do not include markdown, commentary, or extra keys.",
-        },
-        { role: "user", content: dietPrompt },
-      ]);
-
-      // VALIDATE THE INPUT COMING FROM AI
-      let dietPlan = JSON.parse(extractJson(dietPlanText));
-      dietPlan = validateDietPlan(dietPlan);
-
-      const macrosPrompt = `You are an experienced nutrition coach creating daily macro targets based on this user's personalized diet context:
-        Age: ${age}
-        Height: ${height}
-        Weight: ${weight}
-        Fitness goal: ${fitness_goal}
-        Fitness level: ${fitness_level}
-        Daily calories target: ${dietPlan.dailyCalories}
-        Dietary restrictions: ${dietary_restrictions}
-
-        CRITICAL SCHEMA INSTRUCTIONS:
-        - Your output MUST contain ONLY these fields: dailyCalories, proteinGrams, carbsGrams, fatGrams
-        - ALL values MUST be NUMBERS, never strings
-        - Use realistic macro targets for the user's goal and calories
-
-        Return a JSON object with this EXACT structure and no other fields:
-        {
-          "dailyCalories": 2200,
-          "proteinGrams": 160,
-          "carbsGrams": 240,
-          "fatGrams": 70
-        }
-
-        DO NOT add any fields that are not in this example. Your response must be valid JSON with no extra text.`;
-
-      const macrosPlanText = await callOllamaChat([
-        {
-          role: "system",
-          content:
-            "Return only valid JSON. Do not include markdown, commentary, or extra keys.",
-        },
-        { role: "user", content: macrosPrompt },
-      ]);
-
-      let macrosPlan = JSON.parse(extractJson(macrosPlanText));
-      macrosPlan = validateMacrosPlan(macrosPlan);
-
-      const grocerylistPrompt = `You are an experienced nutrition coach creating a grocery list from this diet plan.
-        Daily calories target: ${dietPlan.dailyCalories}
-        Meals JSON: ${JSON.stringify(dietPlan.meals)}
-        Dietary restrictions: ${dietary_restrictions}
-        Location: ${city_region}, ${country_region}
-
-        CRITICAL SCHEMA INSTRUCTIONS:
-        - Your output MUST contain ONLY this top-level field: categories
-        - categories MUST be an array of objects with ONLY: name, items
-        - items MUST be an array of strings
-        - Keep grocery items practical and grouped by category
-        - Prefer locally common ingredients based on the user's location
-        - Replace any uncommon items with realistic local alternatives
-
-        Return a JSON object with this EXACT structure and no other fields:
-        {
-          "categories": [
-            {
-              "name": "Proteins",
-              "items": ["Chicken breast", "Greek yogurt"]
-            },
-            {
-              "name": "Produce",
-              "items": ["Spinach", "Blueberries"]
-            }
-          ]
-        }
-
-        DO NOT add any fields that are not in this example. Your response must be valid JSON with no extra text.`;
-
-      const grocerylistPlanText = await callOllamaChat([
-        {
-          role: "system",
-          content:
-            "Return only valid JSON. Do not include markdown, commentary, or extra keys.",
-        },
-        { role: "user", content: grocerylistPrompt },
-      ]);
-
-      let grocerylistPlan = JSON.parse(extractJson(grocerylistPlanText));
-      grocerylistPlan = validateGrocerylistPlan(grocerylistPlan);
-
-      // save to our DB: CONVEX
       const planId = await ctx.runMutation(api.plans.createPlan, {
         userId: user_id,
         dietPlan,
@@ -471,6 +452,7 @@ http.route({
         macrosPlan,
         workoutPlan,
         name: `${fitness_goal || "Custom"} Plan - ${new Date().toLocaleDateString()}`,
+        cacheKey,
       });
 
       return new Response(

@@ -8,19 +8,19 @@ const plans = [
   {
     name: "STARTER",
     price: "$0",
-    features: ["5K TOKENS/MO", "BASIC MEMORY", "COMMUNITY COMMS"],
+    features: ["BASIC WORKOUT PLAN", "WEEKLY CHECK-INS", "COMMUNITY ACCESS"],
     highlight: false
   },
   {
     name: "PRO",
     price: "$49",
-    features: ["UNLIMITED TOKENS", "FULL MEMORY", "PRIORITY COMMS", "API ACCESS"],
+    features: ["ADAPTIVE TRAINING", "NUTRITION TARGETS", "RECOVERY GUIDANCE", "PRIORITY SUPPORT"],
     highlight: true
   },
   {
-    name: "CORP",
+    name: "TEAM",
     price: "CUSTOM",
-    features: ["DEDICATED NODE", "CUSTOM MODEL", "SLA GUARANTEE", "24/7 UPLINK"],
+    features: ["COACH DASHBOARD", "ATHLETE PROFILES", "TEAM INSIGHTS", "CUSTOM ONBOARDING"],
     highlight: false
   }
 ];
@@ -39,8 +39,8 @@ export default function Pricing() {
       <div className="container mx-auto px-6 md:px-12">
         <motion.div style={{ y }} className="mb-24 text-center">
           <h2 className="font-display text-6xl md:text-8xl font-bold text-white uppercase tracking-tighter">
-            Select Your <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground to-foreground">Power Level.</span>
+            Choose Your <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground to-foreground">Fitness Plan.</span>
           </h2>
         </motion.div>
 
@@ -88,7 +88,7 @@ export default function Pricing() {
                     : 'bg-white text-black hover:bg-foreground hover:text-white'
                 }`}
               >
-                Initialize
+                Start Now
               </button>
             </motion.div>
           ))}

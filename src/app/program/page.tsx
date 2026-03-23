@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { useForm } from "@tanstack/react-form";
 import ProgramFormTabs from "../components/program/ProgramFormTabs";
 import ProgramFormActions from "../components/program/ProgramFormActions";
 import ProgramFormSkeleton from "../components/program/ProgramFormSkeleton";
@@ -17,7 +18,6 @@ const inputClassName =
 	"w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm font-mono text-white placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-white/20";
 
 const ProgramPage = () => {
-	const [formData, setFormData] = useState(initialProgramFormData);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [showSubmitLoading, setShowSubmitLoading] = useState(false);
@@ -25,6 +25,80 @@ const ProgramPage = () => {
 	const [submitSuccess, setSubmitSuccess] = useState(false);
 	const { user } = useUser();
 	const router = useRouter();
+	const form = useForm({
+		defaultValues: initialProgramFormData as ProgramFormData,
+		onSubmit: async ({ value }) => {
+			setIsSubmitting(true);
+			setSubmitError(null);
+			setSubmitSuccess(false);
+
+			if (!user?.id) {
+				setSubmitError("Please sign in to generate a program.");
+				setIsSubmitting(false);
+				return;
+			}
+
+			const convexHttpUrl = process.env.NEXT_PUBLIC_CONVEX_HTTP_URL;
+			if (!convexHttpUrl) {
+				setSubmitError("Missing NEXT_PUBLIC_CONVEX_HTTP_URL environment variable.");
+				setIsSubmitting(false);
+				return;
+			}
+
+			try {
+				const response = await fetch(`${convexHttpUrl}/ollama/generate-program`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						user_id: user.id,
+						age: value.age,
+						height: value.height,
+						weight: value.weight,
+						gender: value.gender,
+						status: value.status,
+						body_fat: value.bodyFat,
+						injuries: value.injuries,
+						workout_days: value.workoutDays,
+						training_style: value.trainingStyle,
+						target_timeline: value.targetTimeline,
+						fitness_goal: value.fitnessGoal,
+						fitness_level: value.fitnessLevel,
+						dietary_restrictions: value.dietaryRestrictions,
+						food_allergies: value.foodAllergies,
+						daily_calories: value.dailyCalories,
+						protein_target: value.proteinTarget,
+						carbs_target: value.carbsTarget,
+						fat_target: value.fatTarget,
+						meals_per_day: value.mealsPerDay,
+						working_hours: value.workingHours,
+						sleep_hours: value.sleepHours,
+						stress_level: value.stressLevel,
+						workout_time: value.workoutTime,
+						available_equipment: value.availableEquipment,
+						country_region: value.countryRegion,
+						city_region: value.cityRegion,
+					}),
+				});
+
+				const data = await response.json();
+				if (!response.ok || !data?.success) {
+					throw new Error(data?.error || "Failed to generate program.");
+				}
+
+				setSubmitSuccess(true);
+				router.push("/profile");
+			} catch (error) {
+				setSubmitError(error instanceof Error ? error.message : "  generate program.");
+			} finally {
+				setIsSubmitting(false);
+				setShowSubmitLoading(false);
+			}
+		},
+		onSubmitInvalid: () => {
+			setSubmitError("Please complete the required fields before submitting.");
+			setIsSubmitting(false);
+		},
+	});
 
 	useEffect(() => {
 		const timer = window.setTimeout(() => setIsLoading(false), 900);
@@ -44,103 +118,20 @@ const ProgramPage = () => {
 		return () => window.clearTimeout(timer);
 	}, [isSubmitting]);
 
-	const setField = (field: keyof ProgramFormData, value: string) => {
-		setFormData((prev) => ({ ...prev, [field]: value }));
-	};
-
 	const handleGenerateSamples = () => {
-		setIsLoading(true);
-		window.setTimeout(() => {
-			setFormData(sampleProgramFormData);
-			setIsLoading(false);
-		}, 500);
+		form.reset(sampleProgramFormData, { keepDefaultValues: true });
 	};
 
 	const handleClear = () => {
-		setFormData(initialProgramFormData);
+		form.reset(initialProgramFormData, { keepDefaultValues: true });
 	};
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setSubmitError(null);
 		setSubmitSuccess(false);
-
-		if (!user?.id) {
-			setSubmitError("Please sign in to generate a program.");
-			return;
-		}
-
-		const convexHttpUrl = process.env.NEXT_PUBLIC_CONVEX_HTTP_URL;
-		if (!convexHttpUrl) {
-			setSubmitError("Missing NEXT_PUBLIC_CONVEX_HTTP_URL environment variable.");
-			return;
-		}
-
-		setIsSubmitting(true);
-		try {
-			const response = await fetch(`${convexHttpUrl}/ollama/generate-program`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					user_id: user.id,
-					age: formData.age,
-					height: formData.height,
-					weight: formData.weight,
-					gender: formData.gender,
-					status: formData.status,
-					body_fat: formData.bodyFat,
-					injuries: formData.injuries,
-					workout_days: formData.workoutDays,
-					training_style: formData.trainingStyle,
-					target_timeline: formData.targetTimeline,
-					fitness_goal: formData.fitnessGoal,
-					fitness_level: formData.fitnessLevel,
-					dietary_restrictions: formData.dietaryRestrictions,
-					food_allergies: formData.foodAllergies,
-					daily_calories: formData.dailyCalories,
-					protein_target: formData.proteinTarget,
-					carbs_target: formData.carbsTarget,
-					fat_target: formData.fatTarget,
-					meals_per_day: formData.mealsPerDay,
-					working_hours: formData.workingHours,
-					sleep_hours: formData.sleepHours,
-					stress_level: formData.stressLevel,
-					workout_time: formData.workoutTime,
-					available_equipment: formData.availableEquipment,
-					country_region: formData.countryRegion,
-					city_region: formData.cityRegion,
-				}),
-			});
-
-			const data = await response.json();
-			if (!response.ok || !data?.success) {
-				throw new Error(data?.error || "Failed to generate program.");
-			}
-
-			setSubmitSuccess(true);
-			router.push("/profile");
-		} catch (error) {
-			setSubmitError(error instanceof Error ? error.message : "  generate program.");
-		} finally {
-			setIsSubmitting(false);
-			setShowSubmitLoading(false);
-		}
+		await form.handleSubmit();
 	};
-
-	const previewRows = [
-		{ label: "Age", value: formData.age },
-		{ label: "Height", value: formData.height },
-		{ label: "Weight", value: formData.weight },
-		{ label: "Country", value: formData.countryRegion },
-		{ label: "City", value: formData.cityRegion },
-		{ label: "Goal", value: formData.fitnessGoal },
-		{ label: "Level", value: formData.fitnessLevel },
-		{ label: "Calories", value: formData.dailyCalories },
-		{ label: "Allergies", value: formData.foodAllergies },
-		{ label: "Workout Days", value: formData.workoutDays },
-		{ label: "Workout Time", value: formData.workoutTime },
-		{ label: "Sleep", value: formData.sleepHours },
-	];
 
 	return (
 		<section className="max-w-5xl relative z-10 pt-20 pb-32 flex-grow container mx-auto px-4 md:px-6">
@@ -157,10 +148,10 @@ const ProgramPage = () => {
 			>
 				<div className="text-left pt-10">
 					<h1 className="text-3xl md:text-3xl font-mono font-semibold tracking-tight text-white">
-						Program Intake Form
+						Fitness Plan Intake
 					</h1>
 					<p className="text-sm font-mono text-white/60 mt-2">
-						Static form grouped into categories for quick planning.
+						Tell us about your goals to generate a personalized plan.
 					</p>
 				</div>
 
@@ -168,19 +159,36 @@ const ProgramPage = () => {
 					<ProgramFormSkeleton />
 				) : (
 					<ProgramFormTabs
-						formData={formData}
-						setField={setField}
+						form={form}
 						inputClassName={inputClassName}
 					/>
 				)}
 
-					<ProgramFormActions
-						previewRows={previewRows}
-						isLoading={isLoading}
-						isSubmitting={isSubmitting}
-						onClear={handleClear}
-						onGenerateSamples={handleGenerateSamples}
-					/>
+				<form.Subscribe
+					selector={(state) => state.values}
+					children={(values) => (
+						<ProgramFormActions
+							previewRows={[
+								{ label: "Age", value: values.age },
+								{ label: "Height", value: values.height },
+								{ label: "Weight", value: values.weight },
+								{ label: "Country", value: values.countryRegion },
+								{ label: "City", value: values.cityRegion },
+								{ label: "Goal", value: values.fitnessGoal },
+								{ label: "Level", value: values.fitnessLevel },
+								{ label: "Calories", value: values.dailyCalories },
+								{ label: "Allergies", value: values.foodAllergies },
+								{ label: "Workout Days", value: values.workoutDays },
+								{ label: "Workout Time", value: values.workoutTime },
+								{ label: "Sleep", value: values.sleepHours },
+							]}
+							isLoading={isLoading}
+							isSubmitting={isSubmitting}
+							onClear={handleClear}
+							onGenerateSamples={handleGenerateSamples}
+						/>
+					)}
+				/>
 
 				{submitError && (
 					<p className="text-sm font-mono text-red-300">{submitError}</p>

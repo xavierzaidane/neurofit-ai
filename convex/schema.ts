@@ -12,6 +12,7 @@ export default defineSchema({
   plans: defineTable({
     userId: v.string(),
     name: v.string(),
+    cacheKey: v.optional(v.string()),
     workoutPlan: v.object({
       schedule: v.array(v.string()),
       exercises: v.array(
@@ -61,5 +62,6 @@ export default defineSchema({
     
   })
     .index("by_user_id", ["userId"])
-    .index("by_active", ["isActive"]),
+    .index("by_active", ["isActive"])
+    .index("by_cache_key", ["cacheKey"]),
 });

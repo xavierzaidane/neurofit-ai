@@ -5,19 +5,19 @@ import { useRef } from 'react';
 
 const testimonials = [
   {
-    quote: "IT WRITES CODE BETTER THAN I DO.",
+    quote: "IT BUILT A PLAN I CAN ACTUALLY STICK TO.",
     author: "SARAH JENKINS",
-    role: "CTO @ TECHFLOW"
+    role: "RUNNER"
   },
   {
-    quote: "ABSOLUTELY INSANE VELOCITY.",
+    quote: "THE ADJUSTMENTS KEEP ME ON TRACK.",
     author: "MARCUS CHEN",
-    role: "LEAD @ VERTEX"
+    role: "STRENGTH COACH"
   },
   {
-    quote: "THE FUTURE IS ALREADY HERE.",
+    quote: "FINALLY, FITNESS THAT FITS MY LIFE.",
     author: "ELENA R.",
-    role: "ARCHITECT @ NEXUS"
+    role: "NEW MOM"
   }
 ];
 
@@ -34,7 +34,7 @@ export default function Testimonials() {
     <section ref={ref} className="py-32 bg-black border-y border-white/10 overflow-hidden">
       <div className="container mx-auto px-6 mb-20">
         <h2 className="font-display text-4xl font-bold text-white uppercase tracking-widest text-center">
-          Verified <span className="text-foreground">Intel</span>
+          Real <span className="text-foreground">Results</span>
         </h2>
       </div>
 

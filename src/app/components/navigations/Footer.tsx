@@ -8,7 +8,7 @@ export default function Footer() {
           <div>
             <h2 className="font-display text-2xl font-bold text-white mb-2">NEUROFIT<span className="text-xs font-mono font-normal text-muted-foreground">2.0</span></h2>
             <p className="text-white/40 text-sm max-w-xs">
-              Pioneering the future of autonomous digital intelligence.
+              Personalized fitness planning powered by AI.
             </p>
           </div>
           <div className="flex gap-8">
@@ -19,7 +19,7 @@ export default function Footer() {
         </div>
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-white/5">
           <p className="text-white/20 text-xs">
-            © {new Date().getFullYear()} NexBot AI. All rights reserved.
+            © {new Date().getFullYear()} Neurofit. All rights reserved.
           </p>
           <div className="flex gap-6">
             <a href="#" className="text-white/40 hover:text-white transition-colors text-xs">Privacy Policy</a>

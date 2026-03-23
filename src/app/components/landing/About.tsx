@@ -26,7 +26,7 @@ export default function About() {
           >
             <h2 className="font-display text-[12vw] leading-[0.8] font-bold tracking-tighter uppercase mb-8">
               True <br />
-              <span className="text-white">Cognition.</span>
+              <span className="text-white">Progress.</span>
             </h2>
             <div className="h-4 w-full bg-black" />
           </motion.div>
@@ -39,8 +39,8 @@ export default function About() {
               transition={{ duration: 0.8, delay: 0.2 }}
             >
               <p className="text-3xl md:text-5xl font-bold leading-tight tracking-tight">
-                NOT JUST A CHATBOT. <br />
-                A NEURAL EXTENSION OF YOUR WILL.
+                NOT JUST AN APP. <br />
+                A PERSONALIZED FITNESS INTELLIGENCE.
               </p>
             </motion.div>
 
@@ -52,17 +52,17 @@ export default function About() {
               className="flex flex-col gap-8"
             >
               <p className="text-xl md:text-2xl font-medium leading-relaxed opacity-80">
-                NexBot shreds the limitations of traditional LLMs. It doesn&apos;t just predict the next token; it anticipates your next move. Built on a proprietary recursive architecture, it learns, adapts, and evolves in real-time.
+                Neurofit2.0 goes beyond static workout templates. It reads your goals, habits, and feedback to craft training, nutrition, and recovery plans that evolve with you in real time.
               </p>
               
               <div className="grid grid-cols-2 gap-8 pt-8 border-t-4 border-black">
                 <div>
-                  <div className="text-6xl font-display font-bold mb-2">99%</div>
-                  <div className="text-sm font-bold uppercase tracking-widest">Accuracy</div>
+                  <div className="text-6xl font-display font-bold mb-2">24/7</div>
+                  <div className="text-sm font-bold uppercase tracking-widest">Guidance</div>
                 </div>
                 <div>
-                  <div className="text-6xl font-display font-bold mb-2">0ms</div>
-                  <div className="text-sm font-bold uppercase tracking-widest">Latency</div>
+                  <div className="text-6xl font-display font-bold mb-2">100%</div>
+                  <div className="text-sm font-bold uppercase tracking-widest">Personalized</div>
                 </div>
               </div>
             </motion.div>

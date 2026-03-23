@@ -5,6 +5,7 @@ export const createPlan = mutation({
   args: {
     userId: v.string(),
     name: v.string(),
+    cacheKey: v.optional(v.string()),
     workoutPlan: v.object({
       schedule: v.array(v.string()),
       exercises: v.array(
@@ -77,6 +78,15 @@ export const getUserPlans = query({
 
     return plans;
   },
+});
+
+export const getPlanByCacheKey = query({
+  args: { cacheKey: v.string() },
+  handler: async (ctx, args) =>
+    ctx.db
+      .query("plans")
+      .withIndex("by_cache_key", (q) => q.eq("cacheKey", args.cacheKey))
+      .first(),
 });
 
 export const deletePlan = mutation({

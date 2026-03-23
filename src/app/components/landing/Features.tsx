@@ -7,40 +7,40 @@ import { useRef } from 'react';
 const features = [
   {
     icon: Brain,
-    title: "NEURAL PROCESSING",
-    description: "Cognitive architecture that adapts in real-time.",
+    title: "SMART COACHING",
+    description: "AI guidance that adapts to your goals and feedback.",
     colSpan: "md:col-span-2",
     bg: "bg-foreground",
     text: "text-black"
   },
   {
     icon: Zap,
-    title: "INSTANT EXECUTION",
-    description: "Edge computing for 0ms latency.",
+    title: "FAST ADJUSTMENTS",
+    description: "Plans update in seconds as your inputs change.",
     colSpan: "md:col-span-1",
     bg: "bg-white/5",
     text: "text-white"
   },
   {
     icon: Shield,
-    title: "MILITARY GRADE",
-    description: "Unbreakable encryption protocols.",
+    title: "PRIVATE BY DESIGN",
+    description: "Your health data stays protected and in your control.",
     colSpan: "md:col-span-1",
     bg: "bg-white/5",
     text: "text-white"
   },
   {
     icon: Globe,
-    title: "GLOBAL MESH",
-    description: "Connects with everything, everywhere.",
+    title: "HOLISTIC VIEW",
+    description: "Training, nutrition, and recovery in one plan.",
     colSpan: "md:col-span-2",
     bg: "bg-white",
     text: "text-black"
   },
   {
     icon: Cpu,
-    title: "AUTONOMOUS",
-    description: "Self-improving agents that never sleep.",
+    title: "SUSTAINABLE",
+    description: "Progressive plans that keep you consistent.",
     colSpan: "md:col-span-3",
     bg: "bg-white/5",
     text: "text-white"
@@ -53,8 +53,8 @@ export default function Features() {
       <div className="container mx-auto px-6 md:px-12 relative z-10">
         <div className="mb-24">
           <h2 className="font-display text-4xl md:text-6xl lg:text-8xl font-bold text-white mb-8 leading-[0.85] tracking-tighter uppercase">
-            Engineered <br />
-            <span className="text-foreground">Dominance.</span>
+            Built For <br />
+            <span className="text-foreground">Progress.</span>
           </h2>
           <div className="h-2 w-32 bg-foreground" />
         </div>
