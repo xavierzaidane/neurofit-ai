@@ -126,6 +126,26 @@ const ProgramFormTabs = ({ formData, setField, inputClassName }: ProgramFormTabs
               onChange={(e) => setField("injuries", e.target.value)}
             />
           </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-mono uppercase tracking-wide text-white/70">Country / region</label>
+            <input
+              className={inputClassName}
+              placeholder="e.g. Philippines"
+              value={formData.countryRegion}
+              onChange={(e) => setField("countryRegion", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-mono uppercase tracking-wide text-white/70">City / region</label>
+            <input
+              className={inputClassName}
+              placeholder="e.g. Quezon City"
+              value={formData.cityRegion}
+              onChange={(e) => setField("cityRegion", e.target.value)}
+            />
+          </div>
         </div>
       </TabsContent>
 
@@ -192,6 +212,7 @@ const ProgramFormTabs = ({ formData, setField, inputClassName }: ProgramFormTabs
                 <SelectItem value="4">4</SelectItem>
                 <SelectItem value="5">5</SelectItem>
                 <SelectItem value="6">6</SelectItem>
+                <SelectItem value="7">7</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -234,6 +255,16 @@ const ProgramFormTabs = ({ formData, setField, inputClassName }: ProgramFormTabs
               placeholder="e.g. Lactose intolerant, no shellfish"
               value={formData.dietaryRestrictions}
               onChange={(e) => setField("dietaryRestrictions", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-xs font-mono uppercase tracking-wide text-white/70">Food allergies</label>
+            <input
+              className={inputClassName}
+              placeholder="e.g. Shellfish, peanuts"
+              value={formData.foodAllergies}
+              onChange={(e) => setField("foodAllergies", e.target.value)}
             />
           </div>
 

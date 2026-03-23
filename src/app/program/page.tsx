@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import ProgramFormTabs from "../components/program/ProgramFormTabs";
 import ProgramFormActions from "../components/program/ProgramFormActions";
 import ProgramFormSkeleton from "../components/program/ProgramFormSkeleton";
+import LoadingScreen from "@/app/loading/page";
 import {
 	initialProgramFormData,
 	sampleProgramFormData,
@@ -19,6 +20,7 @@ const ProgramPage = () => {
 	const [formData, setFormData] = useState(initialProgramFormData);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [showSubmitLoading, setShowSubmitLoading] = useState(false);
 	const [submitError, setSubmitError] = useState<string | null>(null);
 	const [submitSuccess, setSubmitSuccess] = useState(false);
 	const { user } = useUser();
@@ -28,6 +30,19 @@ const ProgramPage = () => {
 		const timer = window.setTimeout(() => setIsLoading(false), 900);
 		return () => window.clearTimeout(timer);
 	}, []);
+
+	useEffect(() => {
+		if (!isSubmitting) {
+			setShowSubmitLoading(false);
+			return;
+		}
+
+		const timer = window.setTimeout(() => {
+			setShowSubmitLoading(true);
+		}, 220);
+
+		return () => window.clearTimeout(timer);
+	}, [isSubmitting]);
 
 	const setField = (field: keyof ProgramFormData, value: string) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
@@ -103,13 +118,12 @@ const ProgramPage = () => {
 			}
 
 			setSubmitSuccess(true);
-			window.setTimeout(() => {
-				router.push("/profile");
-			}, 1200);
+			router.push("/profile");
 		} catch (error) {
 			setSubmitError(error instanceof Error ? error.message : "  generate program.");
 		} finally {
 			setIsSubmitting(false);
+			setShowSubmitLoading(false);
 		}
 	};
 
@@ -117,9 +131,12 @@ const ProgramPage = () => {
 		{ label: "Age", value: formData.age },
 		{ label: "Height", value: formData.height },
 		{ label: "Weight", value: formData.weight },
+		{ label: "Country", value: formData.countryRegion },
+		{ label: "City", value: formData.cityRegion },
 		{ label: "Goal", value: formData.fitnessGoal },
 		{ label: "Level", value: formData.fitnessLevel },
 		{ label: "Calories", value: formData.dailyCalories },
+		{ label: "Allergies", value: formData.foodAllergies },
 		{ label: "Workout Days", value: formData.workoutDays },
 		{ label: "Workout Time", value: formData.workoutTime },
 		{ label: "Sleep", value: formData.sleepHours },
@@ -127,7 +144,17 @@ const ProgramPage = () => {
 
 	return (
 		<section className="max-w-5xl relative z-10 pt-20 pb-32 flex-grow container mx-auto px-4 md:px-6">
-			<form className="space-y-8" onSubmit={handleSubmit}>
+			{showSubmitLoading && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+					<LoadingScreen />
+				</div>
+			)}
+			<form
+				className={`space-y-8 transition-opacity duration-300 ${
+					isSubmitting ? "opacity-0 pointer-events-none" : "opacity-100"
+				}`}
+				onSubmit={handleSubmit}
+			>
 				<div className="text-left pt-10">
 					<h1 className="text-3xl md:text-3xl font-mono font-semibold tracking-tight text-white">
 						Program Intake Form

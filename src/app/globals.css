@@ -46,7 +46,6 @@
 :root {
   /* Base Variables */
   --radius: 0.625rem;
-  
 
   /* Gray Theme Colors */
   --gray-black: #000000;
@@ -170,7 +169,6 @@
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 }
 
-
 .dark {
   /* Background */
   --background: var(--gray-dark);
@@ -221,7 +219,6 @@
   --sidebar-border: rgba(156, 163, 175, 0.2);
   --sidebar-ring: var(--gray-light);
 }
-
 
 @layer base {
   * {

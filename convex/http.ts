@@ -337,11 +337,14 @@ http.route({
         Protein target (g): ${protein_target}
         Carbs target (g): ${carbs_target}
         Fat target (g): ${fat_target}
+        Location: ${city_region}, ${country_region}
         
         As a professional nutrition coach:
         - Calculate appropriate daily calorie intake based on the person's stats and goals
         - Create a balanced meal plan with proper macronutrient distribution
         - Include a variety of nutrient-dense foods while respecting dietary restrictions
+        - Prefer ingredients, meal names, and food choices that are common in the user's location
+        - If a food is not locally common, replace it with a realistic local alternative
         - Consider meal timing around workouts for optimal performance and recovery
         
         CRITICAL SCHEMA INSTRUCTIONS:
@@ -421,12 +424,15 @@ http.route({
         Daily calories target: ${dietPlan.dailyCalories}
         Meals JSON: ${JSON.stringify(dietPlan.meals)}
         Dietary restrictions: ${dietary_restrictions}
+        Location: ${city_region}, ${country_region}
 
         CRITICAL SCHEMA INSTRUCTIONS:
         - Your output MUST contain ONLY this top-level field: categories
         - categories MUST be an array of objects with ONLY: name, items
         - items MUST be an array of strings
         - Keep grocery items practical and grouped by category
+        - Prefer locally common ingredients based on the user's location
+        - Replace any uncommon items with realistic local alternatives
 
         Return a JSON object with this EXACT structure and no other fields:
         {
