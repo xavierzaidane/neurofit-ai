@@ -12,6 +12,7 @@ export default defineSchema({
   plans: defineTable({
     userId: v.string(),
     name: v.string(),
+    cacheKey: v.optional(v.string()),
     workoutPlan: v.object({
       schedule: v.array(v.string()),
       exercises: v.array(
@@ -39,9 +40,28 @@ export default defineSchema({
         })
       ),
     }),
+    grocerylistPlan: v.optional(
+      v.object({
+        categories: v.array(
+          v.object({
+            name: v.string(),
+            items: v.array(v.string()),
+          })
+        ),
+      })
+    ),
+    macrosPlan: v.optional(
+      v.object({
+        dailyCalories: v.number(),
+        proteinGrams: v.number(),
+        carbsGrams: v.number(),
+        fatGrams: v.number(),
+      })
+    ),
     isActive: v.boolean(),
     
   })
     .index("by_user_id", ["userId"])
-    .index("by_active", ["isActive"]),
+    .index("by_active", ["isActive"])
+    .index("by_cache_key", ["cacheKey"]),
 });

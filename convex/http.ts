@@ -3,11 +3,123 @@ import { WebhookEvent } from "@clerk/nextjs/server";
 import { Webhook } from "svix";
 import { api } from "./_generated/api";
 import { httpAction } from "./_generated/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const http = httpRouter();
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const defaultOllamaBaseUrl = "http://127.0.0.1:11434";
+const ollamaBaseUrl =
+  process.env.OLLAMA_BASE_URL ||
+  (process.env.NODE_ENV === "production" ? undefined : defaultOllamaBaseUrl);
+const ollamaModel = process.env.OLLAMA_MODEL;
+const ollamaApiKey = process.env.OLLAMA_API_KEY;
+const corsOrigin = process.env.CORS_ORIGIN || "*";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": corsOrigin,
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+const buildOllamaUrl = (path: string) => {
+  if (!ollamaBaseUrl) {
+    throw new Error(
+      "Missing OLLAMA_BASE_URL environment variable (required in production)."
+    );
+  }
+
+  return new URL(path, ollamaBaseUrl).toString();
+};
+
+const buildOllamaHeaders = () => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (ollamaApiKey) {
+    headers.Authorization = `Bearer ${ollamaApiKey}`;
+  }
+
+  return headers;
+};
+
+const extractJson = (content: string) => {
+  const trimmed = content.trim();
+  const startIndex = trimmed.indexOf("{");
+  const endIndex = trimmed.lastIndexOf("}");
+  if (startIndex === -1 || endIndex === -1) {
+    return trimmed;
+  }
+  return trimmed.slice(startIndex, endIndex + 1);
+};
+
+const safeParseJson = (raw: string, context: string) => {
+  const extracted = extractJson(raw);
+  try {
+    return JSON.parse(extracted);
+  } catch (error) {
+    console.error(`Failed to parse AI JSON (${context}):`, error);
+    console.error("Raw AI output:", raw);
+    throw new Error("AI response was not valid JSON.");
+  }
+};
+
+const normalizeCacheInput = (value: string | undefined | null) =>
+  (value ?? "").toString().trim().toLowerCase();
+
+const buildCacheKey = (inputs: {
+  age: string;
+  weight: string;
+  height: string;
+  fitnessGoal: string;
+  fitnessLevel: string;
+  workoutDays: string;
+}) =>
+  [
+    inputs.age,
+    inputs.weight,
+    inputs.height,
+    inputs.fitnessGoal,
+    inputs.fitnessLevel,
+    inputs.workoutDays,
+  ]
+    .map(normalizeCacheInput)
+    .join("|");
+
+const callOllamaChat = async (messages: Array<{ role: string; content: string }>) => {
+  const response = await fetch(buildOllamaUrl("/api/chat"), {
+    method: "POST",
+    headers: buildOllamaHeaders(),
+    body: JSON.stringify({
+      model: ollamaModel,
+      messages,
+      stream: false,
+      format: "json",
+      options: {
+        temperature: 0.4,
+        top_p: 0.9,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Ollama request failed (${response.status}): ${errorText}`);
+  }
+
+  const data = await response.json();
+
+  return data.message.content;
+};
+
+const generateFitnessPlan = async (prompt: string) =>
+  callOllamaChat([
+    {
+      role: "system",
+      content:
+        "Return ONLY valid JSON. Do not include markdown, commentary, or extra keys.",
+    },
+    { role: "user", content: prompt },
+  ]);
+
 
 http.route({
   path: "/clerk-webhook",
@@ -110,7 +222,10 @@ function validateWorkoutPlan(plan: any) {
 function validateDietPlan(plan: any) {
   // only keep the fields we want
   const validatedPlan = {
-    dailyCalories: plan.dailyCalories,
+    dailyCalories:
+      typeof plan.dailyCalories === "number"
+        ? plan.dailyCalories
+        : parseInt(plan.dailyCalories) || 2000,
     meals: plan.meals.map((meal: any) => ({
       name: meal.name,
       foods: meal.foods,
@@ -119,8 +234,46 @@ function validateDietPlan(plan: any) {
   return validatedPlan;
 }
 
+function validateGrocerylistPlan(plan: any) {
+  const validatedPlan = {
+    categories: (plan.categories || []).map((category: any) => ({
+      name: category.name,
+      items: Array.isArray(category.items) ? category.items : [],
+    })),
+  };
+  return validatedPlan;
+}
+
+function validateMacrosPlan(plan: any) {
+  const validatedPlan = {
+    dailyCalories:
+      typeof plan.dailyCalories === "number"
+        ? plan.dailyCalories
+        : parseInt(plan.dailyCalories) || 2000,
+    proteinGrams:
+      typeof plan.proteinGrams === "number"
+        ? plan.proteinGrams
+        : parseInt(plan.proteinGrams) || 120,
+    carbsGrams:
+      typeof plan.carbsGrams === "number"
+        ? plan.carbsGrams
+        : parseInt(plan.carbsGrams) || 200,
+    fatGrams:
+      typeof plan.fatGrams === "number"
+        ? plan.fatGrams
+        : parseInt(plan.fatGrams) || 60,
+  };
+  return validatedPlan;
+}
+
 http.route({
-  path: "/vapi/generate-program",
+  path: "/ollama/generate-program",
+  method: "OPTIONS",
+  handler: httpAction(async () => new Response(null, { status: 204, headers: corsHeaders })),
+});
+
+http.route({
+  path: "/ollama/generate-program",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     try {
@@ -131,125 +284,175 @@ http.route({
         age,
         height,
         weight,
+        gender,
+        status,
+        body_fat,
         injuries,
         workout_days,
+        training_style,
+        target_timeline,
         fitness_goal,
         fitness_level,
         dietary_restrictions,
+        food_allergies,
+        daily_calories,
+        protein_target,
+        carbs_target,
+        fat_target,
+        meals_per_day,
+        working_hours,
+        sleep_hours,
+        stress_level,
+        workout_time,
+        available_equipment,
+        country_region,
+        city_region,
       } = payload;
 
       console.log("Payload is here:", payload);
 
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash-001",
-        generationConfig: {
-          temperature: 0.4, // lower temperature for more predictable outputs
-          topP: 0.9,
-          responseMimeType: "application/json",
-        },
+      const cacheKey = buildCacheKey({
+        age,
+        weight,
+        height,
+        fitnessGoal: fitness_goal,
+        fitnessLevel: fitness_level,
+        workoutDays: workout_days,
       });
 
-      const workoutPrompt = `You are an experienced fitness coach creating a personalized workout plan based on:
-      Age: ${age}
-      Height: ${height}
-      Weight: ${weight}
-      Injuries or limitations: ${injuries}
-      Available days for workout: ${workout_days}
-      Fitness goal: ${fitness_goal}
-      Fitness level: ${fitness_level}
-      
-      As a professional coach:
-      - Consider muscle group splits to avoid overtraining the same muscles on consecutive days
-      - Design exercises that match the fitness level and account for any injuries
-      - Structure the workouts to specifically target the user's fitness goal
-      
-      CRITICAL SCHEMA INSTRUCTIONS:
-      - Your output MUST contain ONLY the fields specified below, NO ADDITIONAL FIELDS
-      - "sets" and "reps" MUST ALWAYS be NUMBERS, never strings
-      - For example: "sets": 3, "reps": 10
-      - Do NOT use text like "reps": "As many as possible" or "reps": "To failure"
-      - Instead use specific numbers like "reps": 12 or "reps": 15
-      - For cardio, use "sets": 1, "reps": 1 or another appropriate number
-      - NEVER include strings for numerical fields
-      - NEVER add extra fields not shown in the example below
-      
-      Return a JSON object with this EXACT structure:
-      {
-        "schedule": ["Monday", "Wednesday", "Friday"],
-        "exercises": [
+      const cachedPlan = await ctx.runQuery(api.plans.getPlanByCacheKey, {
+        cacheKey,
+      });
+
+      if (cachedPlan) {
+        const workoutPlan = validateWorkoutPlan(cachedPlan.workoutPlan);
+        const dietPlan = validateDietPlan(cachedPlan.dietPlan);
+        const macrosPlan = cachedPlan.macrosPlan
+          ? validateMacrosPlan(cachedPlan.macrosPlan)
+          : undefined;
+        const grocerylistPlan = cachedPlan.grocerylistPlan
+          ? validateGrocerylistPlan(cachedPlan.grocerylistPlan)
+          : undefined;
+
+        const planId = await ctx.runMutation(api.plans.createPlan, {
+          userId: user_id,
+          name: cachedPlan.name,
+          workoutPlan,
+          dietPlan,
+          grocerylistPlan,
+          macrosPlan,
+          isActive: true,
+          cacheKey,
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              planId,
+              workoutPlan,
+              dietPlan,
+              grocerylistPlan,
+              macrosPlan,
+            },
+          }),
           {
-            "day": "Monday",
-            "routines": [
-              {
-                "name": "Exercise Name",
-                "sets": 3,
-                "reps": 10
-              }
-            ]
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
           }
+        );
+      }
+
+      const unifiedPrompt = `You are an experienced fitness and nutrition coach creating a complete plan in a single response.
+
+User profile:
+Age: ${age}
+Height: ${height}
+Weight: ${weight}
+Gender: ${gender}
+Status: ${status}
+Body fat %: ${body_fat}
+Injuries or limitations: ${injuries}
+Available days for workout: ${workout_days}
+Target timeline: ${target_timeline}
+Fitness goal: ${fitness_goal}
+Fitness level: ${fitness_level}
+Preferred training style: ${training_style}
+Preferred workout time: ${workout_time}
+Available equipment: ${available_equipment}
+Location: ${city_region}, ${country_region}
+Working hours: ${working_hours}
+Sleep hours: ${sleep_hours}
+Stress level: ${stress_level}
+Daily calories target (user input): ${daily_calories}
+Dietary restrictions: ${dietary_restrictions}
+Food allergies: ${food_allergies}
+Meals per day: ${meals_per_day}
+Protein target (g): ${protein_target}
+Carbs target (g): ${carbs_target}
+Fat target (g): ${fat_target}
+
+Requirements:
+- Consider muscle group splits to avoid overtraining consecutive days.
+- Match exercises to fitness level and injuries.
+- Align workouts and diet to the fitness goal and timeline.
+- Prefer local foods based on the user's location.
+
+CRITICAL SCHEMA INSTRUCTIONS:
+- Return ONLY valid JSON. No markdown. No explanation.
+- Output MUST contain ONLY the fields shown in the schema below.
+- ALL numeric values MUST be numbers (never strings).
+- Do NOT add extra fields.
+
+Return a JSON object with this EXACT structure:
+{
+  "workoutPlan": {
+    "schedule": ["Monday", "Wednesday", "Friday"],
+    "exercises": [
+      {
+        "day": "Monday",
+        "routines": [
+          { "name": "Exercise Name", "sets": 3, "reps": 10 }
         ]
       }
-      
-      DO NOT add any fields that are not in this example. Your response must be a valid JSON object with no additional text.`;
+    ]
+  },
+  "dietPlan": {
+    "dailyCalories": 2000,
+    "meals": [
+      { "name": "Breakfast", "foods": ["Oatmeal", "Greek yogurt"] }
+    ]
+  },
+  "macrosPlan": {
+    "dailyCalories": 2200,
+    "proteinGrams": 160,
+    "carbsGrams": 240,
+    "fatGrams": 70
+  },
+  "grocerylistPlan": {
+    "categories": [
+      { "name": "Proteins", "items": ["Chicken breast", "Greek yogurt"] }
+    ]
+  }
+}`;
 
-      const workoutResult = await model.generateContent(workoutPrompt);
-      const workoutPlanText = workoutResult.response.text();
+      const rawPlanText = await generateFitnessPlan(unifiedPrompt);
+      const parsedPlan = safeParseJson(rawPlanText, "unified-plan");
 
-      // VALIDATE THE INPUT COMING FROM AI
-      let workoutPlan = JSON.parse(workoutPlanText);
-      workoutPlan = validateWorkoutPlan(workoutPlan);
+      let workoutPlan = validateWorkoutPlan(parsedPlan.workoutPlan);
+      let dietPlan = validateDietPlan(parsedPlan.dietPlan);
+      let macrosPlan = validateMacrosPlan(parsedPlan.macrosPlan);
+      let grocerylistPlan = validateGrocerylistPlan(parsedPlan.grocerylistPlan);
 
-      const dietPrompt = `You are an experienced nutrition coach creating a personalized diet plan based on:
-        Age: ${age}
-        Height: ${height}
-        Weight: ${weight}
-        Fitness goal: ${fitness_goal}
-        Dietary restrictions: ${dietary_restrictions}
-        
-        As a professional nutrition coach:
-        - Calculate appropriate daily calorie intake based on the person's stats and goals
-        - Create a balanced meal plan with proper macronutrient distribution
-        - Include a variety of nutrient-dense foods while respecting dietary restrictions
-        - Consider meal timing around workouts for optimal performance and recovery
-        
-        CRITICAL SCHEMA INSTRUCTIONS:
-        - Your output MUST contain ONLY the fields specified below, NO ADDITIONAL FIELDS
-        - "dailyCalories" MUST be a NUMBER, not a string
-        - DO NOT add fields like "supplements", "macros", "notes", or ANYTHING else
-        - ONLY include the EXACT fields shown in the example below
-        - Each meal should include ONLY a "name" and "foods" array
-
-        Return a JSON object with this EXACT structure and no other fields:
-        {
-          "dailyCalories": 2000,
-          "meals": [
-            {
-              "name": "Breakfast",
-              "foods": ["Oatmeal with berries", "Greek yogurt", "Black coffee"]
-            },
-            {
-              "name": "Lunch",
-              "foods": ["Grilled chicken salad", "Whole grain bread", "Water"]
-            }
-          ]
-        }
-        
-        DO NOT add any fields that are not in this example. Your response must be a valid JSON object with no additional text.`;
-
-      const dietResult = await model.generateContent(dietPrompt);
-      const dietPlanText = dietResult.response.text();
-
-      // VALIDATE THE INPUT COMING FROM AI
-      let dietPlan = JSON.parse(dietPlanText);
-      dietPlan = validateDietPlan(dietPlan);
-
-      // save to our DB: CONVEX
       const planId = await ctx.runMutation(api.plans.createPlan, {
         userId: user_id,
         dietPlan,
+        grocerylistPlan,
         isActive: true,
+        macrosPlan,
         workoutPlan,
-        name: `${fitness_goal} Plan - ${new Date().toLocaleDateString()}`,
+        name: `${fitness_goal || "Custom"} Plan - ${new Date().toLocaleDateString()}`,
+        cacheKey,
       });
 
       return new Response(
@@ -259,11 +462,13 @@ http.route({
             planId,
             workoutPlan,
             dietPlan,
+            grocerylistPlan,
+            macrosPlan,
           },
         }),
         {
           status: 200,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
     } catch (error) {
@@ -275,7 +480,7 @@ http.route({
         }),
         {
           status: 500,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
     }

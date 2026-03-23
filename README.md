@@ -1,13 +1,12 @@
 # NeuroFit AI
 
-A React/Next.js web app that allows users to generate personalized fitness programs via voice interaction with an AI assistant powered by Vapi. Uses Clerk for authentication and Convex for backend services.
+A React/Next.js web app that allows users to generate personalized fitness programs via a structured intake form powered by Ollama. Uses Clerk for authentication and Convex for backend services.
 
 ---
 
 ## Features
 
-* Voice conversation with AI assistant (NeuroFit AI)
-* Real-time message transcription
+* Form-based intake for personalized program generation
 * Personalized fitness program generation
 * User authentication with Clerk
 * Smooth UI with Tailwind CSS
@@ -17,7 +16,7 @@ A React/Next.js web app that allows users to generate personalized fitness progr
 ## Tech Stack
 
 * **Frontend:** Next.js, React, Tailwind CSS
-* **AI Workflow:** Vapi
+* **AI Workflow:** Ollama
 * **Authentication:** Clerk
 * **Backend:** Convex
 
@@ -27,7 +26,7 @@ A React/Next.js web app that allows users to generate personalized fitness progr
 
 * Node.js >= 18
 * npm or yarn
-* Vapi account & workflow setup
+* Ollama running locally
 * Clerk account & API keys
 * Convex project & deployment
 
@@ -61,13 +60,21 @@ CLERK_SECRET_KEY=your_clerk_secret_key
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 
-# Vapi
-NEXT_PUBLIC_VAPI_WORKFLOW_ID=your_vapi_workflow_id
-NEXT_PUBLIC_VAPI_API_KEY=your_vapi_api_key
+
+# Ollama
+OLLAMA_BASE_URL=http://127.0.0.1:11434
+OLLAMA_MODEL=qwen3.5:0.8b
+OLLAMA_API_KEY=your_ollama_api_key
+
+# Convex HTTP
+NEXT_PUBLIC_CONVEX_HTTP_URL=https://your-deployment.convex.site
 
 # Convex
 CONVEX_DEPLOYMENT=dev:oceanic-snail-89
 NEXT_PUBLIC_CONVEX_URL=https://oceanic-snail-89.convex.cloud
+
+# Optional CORS
+CORS_ORIGIN=http://localhost:3000
 ```
 
 > Replace all keys with your actual credentials.
@@ -101,11 +108,10 @@ yarn start
 ## Usage
 
 1. Sign up or log in via Clerk.
-2. Go to **Generate Program** page.
-3. Click **Start Call** to interact with the AI assistant.
-4. Speak to NeuroFit AI to create your personalized fitness program.
-5. Messages and AI responses appear in the chat container.
-6. When the call ends, you'll be redirected to your profile page automatically.
+2. Go to **Program** page.
+3. Fill out the intake form.
+4. Click **Submit** to generate your personalized fitness program.
+5. You'll be redirected to your profile page automatically.
 
 ---
 
@@ -119,10 +125,13 @@ yarn start
 | `CLERK_SECRET_KEY`                  | Clerk backend key           |
 | `NEXT_PUBLIC_CLERK_SIGN_IN_URL`     | Sign-in route               |
 | `NEXT_PUBLIC_CLERK_SIGN_UP_URL`     | Sign-up route               |
-| `NEXT_PUBLIC_VAPI_WORKFLOW_ID`      | Vapi workflow ID            |
-| `NEXT_PUBLIC_VAPI_API_KEY`          | Vapi API key                |
+| `OLLAMA_BASE_URL`                   | Ollama base URL             |
+| `OLLAMA_MODEL`                      | Ollama model name           |
+| `OLLAMA_API_KEY`                    | Ollama cloud API key        |
 | `CONVEX_DEPLOYMENT`                 | Convex deployment reference |
 | `NEXT_PUBLIC_CONVEX_URL`            | Convex endpoint             |
+| `NEXT_PUBLIC_CONVEX_HTTP_URL`       | Convex HTTP endpoint        |
+| `CORS_ORIGIN`                       | Allowed origin for HTTP     |
 
 ---
 
