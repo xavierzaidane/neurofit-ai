@@ -1,6 +1,6 @@
 # NeuroFit2.0
 
-A React/Next.js web app that allows users to generate personalized fitness programs via a structured intake form powered by Ollama. Uses Clerk for authentication and Convex for backend services.
+A React/Next.js web app that lets users generate personalized fitness programs through a structured intake flow powered by Ollama. Authentication is handled by Clerk and backend services run on Convex.
 
 ---
 
@@ -15,10 +15,38 @@ A React/Next.js web app that allows users to generate personalized fitness progr
 
 ## Tech Stack
 
-* **Frontend:** Next.js, React, Tailwind CSS
-* **AI Workflow:** Ollama
+### Core
+
+* **Framework:** Next.js (App Router)
+* **Language:** TypeScript
+* **UI:** React 19
+* **Styling:** Tailwind CSS
+
+### UI Components & UX
+
+* **Component system:** shadcn/ui
+* **Primitives:** Radix UI
+* **Icons:** lucide-react
+* **Animation:** motion
+
+### Forms & Validation
+
+* **Form state:** TanStack Form
+* **Validation:** Zod (available for schema validation)
+
+### Backend & Data
+
+* **Backend:** Convex (database + serverless functions)
+* **HTTP API:** Convex HTTP actions
+
+### Auth & AI
+
 * **Authentication:** Clerk
-* **Backend:** Convex
+* **AI runtime:** Ollama (local or hosted)
+
+### Utilities
+
+* **Class utilities:** clsx, tailwind-merge, class-variance-authority
 
 ---
 
@@ -114,6 +142,14 @@ yarn start
 5. You'll be redirected to your profile page automatically.
 
 ---
+
+## Project Structure
+
+* **src/app**: Next.js routes (App Router)
+* **src/app/components**: Page-level components (landing, program, profile)
+* **src/components/ui**: Shared UI components (shadcn/ui)
+* **convex**: Backend logic, schema, and HTTP endpoints
+* **public**: Static assets
 
 
 
